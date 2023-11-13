@@ -11,14 +11,14 @@ node_per_layer = 24
 learning_rate = 0.15
 percentage_from_data = 0.85
 
-def softmax(z):
-    assert len(z.shape) == 2
-    s = np.max(z, axis=1)
-    s = s[:, np.newaxis] # necessary step to do broadcasting
-    e_x = np.exp(z - s)
-    div = np.sum(e_x, axis=1)
-    div = div[:, np.newaxis] # dito
-    return e_x / div
+def one_hot(y_train):
+    one_hot = np.zeros((y_train.size, y_train.max() + 1))
+    one_hot[np.arange(y_train.size, y_train)] = 1
+    return one_hot.T
+
+def softmax(Z):
+    expZ = np.exp(Z)
+    return expZ / np.sum(expZ)
 
 def sigmoid(x):
     return (1 / (1 + np.exp(-x)))
@@ -32,12 +32,16 @@ def print_shape(data, x_train, x_valid):
     print("x_train shape:", x_train.shape)
     print("x_valid shape:", x_valid.shape)
     
-def print_shape(x_train):
+def normalize_data(x_train):
     min_val = np.min(x_train)
     max_val = np.max(x_train)
     x_train = (x_train - min_val) / (max_val - min_val)
 
 def main():
+    if len(sys.argv) != 2:
+        print("Wrong number of args")
+        exit (1)
+
     data = pd.read_csv(sys.argv[1], header=None)
     data = data.drop(0, axis=1)
     
@@ -54,30 +58,30 @@ def main():
     x_train = np.array(x_train)
     # x_train = normalize_data(x_train)
 
-    inputLayer = Layer(10, x_train.shape[0],sigmoid)
+    inputLayer = Layer(10, x_train.shape[1],sigmoid)
     hiddenLayer1 = Layer(10, 10,sigmoid)
     hiddenLayer2 = Layer(10, 10,sigmoid)
     hiddenLayer3 = Layer(10, 10,sigmoid)
     # outputLayer = Layer(10, softmax, 10)
-    outputLayer = Layer(1, 1,sigmoid)
-
-    final = []
+    outputLayer = Layer(2, 10, softmax)
+    
     # for x_instance in x_train:
-    delta = inputLayer.computeLayer(x_train)
+    x_instance = x_train[0]
+    x_instance = np.tile(x_instance, (10, 1))
+    print("Input", x_instance.shape)
+    delta = inputLayer.computeLayer(x_instance.T)
+    print("Output of layer 0:", delta.shape)
     delta = hiddenLayer1.computeLayer(delta)
     delta = hiddenLayer2.computeLayer(delta)
     delta = hiddenLayer3.computeLayer(delta)
-    final.append(outputLayer.computeLayer(delta))
+    final = outputLayer.computeLayer(delta)
 
-        # test = test[np.newaxis, :] # dito
-        # print(softmax(test))
-        # print(softmax(test).sum())
-    final = np.array(final)
-    dZ = final - y_train
-    dW =  1 / y_train.shape[0] * dZ * final.T
-    # print(dZ)
-    # for x_instance in x_train:
-        # dZ = 
+    print(final)
+    # print(y_train.shape)
+    dZ = final[0] - y_train[0]
+    dW =  1 / y_train[0] * dZ * final[0]
+    print(dW)
+
 
 if __name__ == "__main__":
     main()

@@ -7,24 +7,23 @@ class Layer:
         self.activation = funcActivation
         self.weights = np.random.rand(nodes, input_len)
 
-    def computeNode(self, index, input):
-        sum = 0
-        for i in range(self.weights[index].shape[0]):
-            sum += input[i] * self.weights[index][i]
-        sum + self.bias
-        return (self.activation(sum))
+    # def computeNode(self, index, input):
+    #     sum = 0
+    #     for i in range(self.weights[index].shape[0]):
+    #         sum += input[i] * self.weights[index][i]
+    #     sum + self.bias
+    #     return (self.activation(sum))
     
     def computeLayer(self, input):
-        output = np.array([self.computeNode(i, input) for i in range(self.nodes)])
-        print("LOOP:", output[0])
-        
+        print("computeLayer input:", input.shape)
+        print("weights:", self.weights.shape)
+        # output = np.array([self.computeNode(i, input) for i in range(self.nodes)])
         Z1 = self.weights.dot(input) + self.bias
         output = self.activation(Z1)
-        print("DOT PRODUCT", output[0])
         return output
 
     def binaryCrossEntropy(output, y_train):
-        result = - 1/y_train.shape[0]
+        result = - 1 / y_train.shape[0]
         sum = 0
         mean = 0
         for element in output:

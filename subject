@@ -1,0 +1,35 @@
+need to print binary crossentropy on the predict part
+print mean squqred error
+print output de soft max sur les predictions en %
+
+
+2 class en output avec softmax
+
+doit avoir un code modulable
+
+class model : 
+
+set up les parametres : 
+    
+function create network qui prend une list des neuronnes du réseau de l'input a l'ouput
+
+parametre d'une couche: 
+    nb de neuronnes
+    function d'activation
+    maniere d'initilaziter les poids
+    
+
+/!\ couche de sortie softmax oblige 
+
+trainning avec les couches de neuronnes:
+    params:
+        - data set de trainning
+        - data set valid
+        - function de perte
+        - learning rate
+        - nb d'epochs
+        - no
+
+
+softmax
+    exp(Z) / sum of (exp(Z))
