@@ -68,19 +68,19 @@ def main():
     # for x_instance in x_train:
     x_instance = x_train[0]
     x_instance = np.tile(x_instance, (10, 1))
-    print("Input", x_instance.shape)
     delta = inputLayer.computeLayer(x_instance.T)
-    print("Output of layer 0:", delta.shape)
     delta = hiddenLayer1.computeLayer(delta)
     delta = hiddenLayer2.computeLayer(delta)
     delta = hiddenLayer3.computeLayer(delta)
     final = outputLayer.computeLayer(delta)
 
-    print(final)
+    mPercentage = np.sum(final[0])
+    bPercentage = np.sum(final[1])
+    print(bPercentage)
+    print(mPercentage)
     # print(y_train.shape)
     dZ = final[0] - y_train[0]
     dW =  1 / y_train[0] * dZ * final[0]
-    print(dW)
 
 
 if __name__ == "__main__":
