@@ -11,21 +11,18 @@ node_per_layer = 24
 learning_rate = 0.15
 percentage_from_data = 0.85
 
-def one_hot(y_train):
-    one_hot = np.zeros((y_train.size, y_train.max() + 1))
-    one_hot[np.arange(y_train.size, y_train)] = 1
-    return one_hot.T
+def sigmoid(x):
+    return (1 / (1 + np.exp(-x)))
 
 def softmax(Z):
     expZ = np.exp(Z)
     return expZ / np.sum(expZ)
 
-def sigmoid(x):
-    return (1 / (1 + np.exp(-x)))
-
-def cost(output, y_train):
-    cost = (output - y_train) ** 2
-    return cost
+def one_hot(y_train):
+    one_hot = np.zeros((y_train.size, y_train.max() + 1))
+    n_values = np.max(y_train) + 1
+    one_hot = np.eye(n_values)[y_train]
+    return one_hot
 
 def print_shape(data, x_train, x_valid):
     print("initial shape:", data.shape)
@@ -51,6 +48,7 @@ def main():
     y_train = y_train.replace('M', 1)
     y_train = y_train.replace('B', 0)
     y_train = np.array(y_train)
+    y_train_one_hot = one_hot(y_train)
     data = data.drop(1, axis=1)
     # initialize x values (input of our neural network)
     x_train = pd.DataFrame(data[0:round(data.shape[0] * percentage_from_data)].values)
@@ -58,7 +56,7 @@ def main():
     x_train = np.array(x_train)
     # x_train = normalize_data(x_train)
 
-    inputLayer = Layer(10, x_train.shape[1],sigmoid)
+    inputLayer = Layer(10, x_train.shape[1], sigmoid)
     hiddenLayer1 = Layer(10, 10,sigmoid)
     hiddenLayer2 = Layer(10, 10,sigmoid)
     hiddenLayer3 = Layer(10, 10,sigmoid)
@@ -76,8 +74,14 @@ def main():
 
     mPercentage = np.sum(final[0])
     bPercentage = np.sum(final[1])
-    print(bPercentage)
-    print(mPercentage)
+    print("mPercentage", mPercentage)
+    print("bPercentage", bPercentage)
+    print("first y m = ", y_train_one_hot[0][0])
+    print("first y b = ", y_train_one_hot[0][1])
+    m_cost = (mPercentage - y_train_one_hot[0][0]) ** 2
+    b_cost = (bPercentage - y_train_one_hot[0][1]) ** 2
+    print(m_cost)
+    print(b_cost)
     # print(y_train.shape)
     dZ = final[0] - y_train[0]
     dW =  1 / y_train[0] * dZ * final[0]
