@@ -12,6 +12,26 @@ node_per_layer = 24
 learning_rate = 0.15
 percentage_from_data = 0.85
 
+def binaryCrossEntropy(output, y_train):
+    result = - 1/y_train.shape[0]
+    sum = 0
+    mean = 0
+    for element in output:
+        mean += element
+    mean /= len(output)
+    for i in range(y_train.shape[0]):
+        sum += (y_train[i] * math.log(mean)) + ((1 - y_train[i]) * math.log(1 - mean))
+    return result * sum
+
+def softmax(z):
+    assert len(z.shape) == 2
+    s = np.max(z, axis=1)
+    s = s[:, np.newaxis] # necessary step to do broadcasting
+    e_x = np.exp(z - s)
+    div = np.sum(e_x, axis=1)
+    div = div[:, np.newaxis] # dito
+    return e_x / div
+
 def sigmoid(x):
     return (1 / (1 + np.exp(-x)))
 
