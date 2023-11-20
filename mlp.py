@@ -4,6 +4,7 @@ import numpy as np
 from sklearn import preprocessing
 from Layer import Layer
 import math
+from constants import *
 
 epochs = 90
 layer = 3 
@@ -34,6 +35,26 @@ def normalize_data(x_train):
     max_val = np.max(x_train)
     x_train = (x_train - min_val) / (max_val - min_val)
 
+def derivative_cost(output, waited):
+    return 2 * (output - waited)
+
+def derivative(Z, fn):
+    if fn == SIGMOID:
+        fn = sigmoid
+    elif fn == SOFTMAX:
+        fn = softmax
+    return fn(Z) * (1 - fn(Z))
+
+def optimal_weights(output, waited, sub_output, fn):
+    if fn == SIGMOID:
+        activation = sigmoid
+    elif fn == SOFTMAX:
+        activation = softmax
+    
+    cost_res_weights = sub_output * derivative(output, fn) * derivative_cost(output, waited)
+    print(cost_res_weights)
+    return cost_res_weights
+
 def main():
     if len(sys.argv) != 2:
         print("Wrong number of args")
@@ -58,8 +79,6 @@ def main():
 
     inputLayer = Layer(10, x_train.shape[1], sigmoid)
     hiddenLayer1 = Layer(10, 10,sigmoid)
-    hiddenLayer2 = Layer(10, 10,sigmoid)
-    hiddenLayer3 = Layer(10, 10,sigmoid)
     # outputLayer = Layer(10, softmax, 10)
     outputLayer = Layer(2, 10, softmax)
     
@@ -68,24 +87,20 @@ def main():
     x_instance = np.tile(x_instance, (10, 1))
     delta = inputLayer.computeLayer(x_instance.T)
     delta = hiddenLayer1.computeLayer(delta)
-    delta = hiddenLayer2.computeLayer(delta)
-    delta = hiddenLayer3.computeLayer(delta)
     final = outputLayer.computeLayer(delta)
 
     mPercentage = np.sum(final[0])
     bPercentage = np.sum(final[1])
-    print("mPercentage", mPercentage)
-    print("bPercentage", bPercentage)
-    print("first y m = ", y_train_one_hot[0][0])
-    print("first y b = ", y_train_one_hot[0][1])
+    
     m_cost = (mPercentage - y_train_one_hot[0][0]) ** 2
     b_cost = (bPercentage - y_train_one_hot[0][1]) ** 2
-    print(m_cost)
-    print(b_cost)
-    # print(y_train.shape)
-    dZ = final[0] - y_train[0]
-    dW =  1 / y_train[0] * dZ * final[0]
 
+    tmp = np.array([mPercentage, bPercentage])
+    tmp2 = np.array([y_train_one_hot[0][0], y_train_one_hot[0][1]])
+
+    updated_weights = optimal_weights(tmp, tmp2, delta[0][0], SOFTMAX)
+    # dZ = final[0] - y_train[0]
+    # dW =  1 / y_train[0] * dZ * final[0]
 
 if __name__ == "__main__":
     main()

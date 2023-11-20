@@ -25,16 +25,11 @@ class Layer:
     
     def cost(output, waited): 
         return (output - waited) ** 2
-    def derivative_cost(output, waited):
-        return 2 * (output - waited)
         
-    def sigmoid(x):
-        return (1 / (1 + np.exp(-x)))
-    def derivative_sigmoiod(x):
-        return sigmoid(x) * (1 - sigmoid(x))
-    
-    def optimal_weights(output, waited, sub_output):
-        cost_res_weights = sub_output * derivative_sigmoid(output) * derivative_cost(output, waited)
-        print(cost_res_weights)
-        return cost_res_weights
+    def sigmoid(Z):
+        return (1 / (1 + np.exp(-Z)))
+    def softmax(Z):
+        expZ = np.exp(Z)
+        return expZ / np.sum(expZ)
 
+    
