@@ -97,32 +97,44 @@ def main():
         print("Wrong number of args")
         exit (1)
 
-    data = pd.read_csv(sys.argv[1], header=None)
-    x_train, y_train = init_data(data)
-    y_train_one_hot = one_hot(y_train)
-    
-    inputLayer = Layer(10, x_train.shape[1], sigmoid)
-    hiddenLayer1 = Layer(10, 10,sigmoid)
+    # data = pd.read_csv(sys.argv[1], header=None)
+    # x_train, y_train = init_data(data)
+    # y_train_one_hot = one_hot(y_train)
+    x_train = np.array([0.35, 0.9])
+    y_train = np.array([0.5])
+    hiddenLayer = Layer(2, 2, sigmoid,  np.array([[0.1, 0.8], [0.4, 0.6]]))
+    outputLayer = Layer(1, 2,sigmoid, np.array([0.3, 0.9]))
     # outputLayer = Layer(10, softmax, 10)
-    outputLayer = Layer(2, 10, softmax)
+    # outputLayer = Layer(1, 2, sigmoid, np.array([1, 1]))
     
     # for x_instance in x_train:
-    x_instance = x_train[0]
-    x_instance = np.tile(x_instance, (10, 1))
-    delta = inputLayer.computeLayer(x_instance.T)
-    delta = hiddenLayer1.computeLayer(delta)
-    final = outputLayer.computeLayer(delta)
-
-    mPercentage = np.sum(final[0])
-    bPercentage = np.sum(final[1])
+    # x_instance = x_train[0]
+    # x_instance = np.tile(x_instance, (2, 1))
+    outputHiddenLayer = hiddenLayer.computeLayer(x_train)
+    final = outputLayer.computeLayer(outputHiddenLayer)
+    # print(final)
     
-    m_cost = (mPercentage - y_train_one_hot[0][0]) ** 2
-    b_cost = (bPercentage - y_train_one_hot[0][1]) ** 2
+    for i in range(100):
+        delta = outputLayer.deltaOutputLayer(y_train, final)
+        hiddenLayer.update_weights(outputHiddenLayer, hiddenLayer.deltaHiddenLayer(delta, outputHiddenLayer, outputLayer.weights))
+        outputLayer.update_weights(final, delta)
+        
+        outputHiddenLayer = hiddenLayer.computeLayer(x_train)
+        final = outputLayer.computeLayer(outputHiddenLayer)
+        print(final)
 
-    tmp = np.array([mPercentage, bPercentage])
-    tmp2 = np.array([y_train_one_hot[0][0], y_train_one_hot[0][1]])
+    # final = outputLayer.computeLayer(delta)
+    # mPercentage = np.sum(final[0])
+    # bPercentage = np.sum(final[1])
+    
+    # m_cost = (mPercentage - y_train_one_hot[0][0]) ** 2
+    # b_cost = (bPercentage - y_train_one_hot[0][1]) ** 2
 
-    updated_weights = optimal_weights(tmp, tmp2, delta[0][0], SOFTMAX)
+    # tmp = np.array([mPercentage, bPercentage])
+    # tmp2 = np.array([y_train_one_hot[0][0], y_train_one_hot[0][1]])
+
+    # updated_weights = optimal_weights(tmp, tmp2, delta[0][0], SOFTMAX)
+
     # dZ = final[0] - y_train[0]
     # dW =  1 / y_train[0] * dZ * final[0]
 
