@@ -75,12 +75,7 @@ def optimal_weights(output, waited, sub_output, fn):
     print(cost_res_weights)
     return cost_res_weights
 
-def main():
-    if len(sys.argv) != 2:
-        print("Wrong number of args")
-        exit (1)
-
-    data = pd.read_csv(sys.argv[1], header=None)
+def init_data(data):
     data = data.drop(0, axis=1)
     
     # create y train (waited output of our neural network)
@@ -89,14 +84,23 @@ def main():
     y_train = y_train.replace('M', 1)
     y_train = y_train.replace('B', 0)
     y_train = np.array(y_train)
-    y_train_one_hot = one_hot(y_train)
     data = data.drop(1, axis=1)
     # initialize x values (input of our neural network)
     x_train = pd.DataFrame(data[0:round(data.shape[0] * percentage_from_data)].values)
     x_valid = pd.DataFrame(data[x_train.shape[0]:data.shape[0]].values)
     x_train = np.array(x_train)
     # x_train = normalize_data(x_train)
+    return x_train, y_train
 
+def main():
+    if len(sys.argv) != 2:
+        print("Wrong number of args")
+        exit (1)
+
+    data = pd.read_csv(sys.argv[1], header=None)
+    x_train, y_train = init_data(data)
+    y_train_one_hot = one_hot(y_train)
+    
     inputLayer = Layer(10, x_train.shape[1], sigmoid)
     hiddenLayer1 = Layer(10, 10,sigmoid)
     # outputLayer = Layer(10, softmax, 10)
