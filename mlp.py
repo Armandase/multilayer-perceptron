@@ -92,6 +92,21 @@ def init_data(data):
     x_train = normalize_data(x_train)
     return x_train, y_train
 
+def prediction(data):
+    data = data.drop(0, axis=1)
+    y_check = data[1].copy()
+    y_check = y_check[round(data.shape[0] * percentage_from_data):data.shape[0]]
+    y_check = y_check.replace('M', 1)
+    y_check = y_check.replace('B', 0)
+    y_check = np.array(y_check)
+    data = data.drop(1, axis=1)
+    x_check = pd.DataFrame(data[round(data.shape[0] * percentage_from_data):data.shape[0]].values)
+    x_check = np.array(x_check)
+    for i in range(x_check.shape[0]):
+        outputHiddenLayer = hiddenLayer.computeLayer(x_check[i])
+        final = outputLayer.computeLayer(outputHiddenLayer)
+        print("Waited: ", y_check[i], " Get: ",  final)
+
 def main():
     if len(sys.argv) != 2:
         print("Wrong number of args")
@@ -99,26 +114,24 @@ def main():
 
     data = pd.read_csv(sys.argv[1], header=None)
     x_train, y_train = init_data(data)
-    x_instance = x_train[0]
     # y_train_one_hot = one_hot(y_train)
 
-    hiddenLayer = Layer(2, x_instance.shape[0], sigmoid)
+    hiddenLayer = Layer(2, x_train[0].shape[0], sigmoid)
     outputLayer = Layer(1, 2,sigmoid)
     # outputLayer = Layer(10, softmax, 10)
     
-    # for x_instance in x_train:
     # x_instance = x_train[0]
     # x_instance = np.tile(x_instance, (2, 1))
 
-    for i in range(10000):
-        outputHiddenLayer = hiddenLayer.computeLayer(x_instance)
+    # for j in range(1000):
+    for i in range(x_train.shape[0]):
+        outputHiddenLayer = hiddenLayer.computeLayer(x_train[i])
         final = outputLayer.computeLayer(outputHiddenLayer)
-        print(final)
 
-        delta = outputLayer.deltaOutputLayer(y_train[0], final)
+        delta = outputLayer.deltaOutputLayer(y_train[i], final)
         hiddenLayer.update_weights(outputHiddenLayer, hiddenLayer.deltaHiddenLayer(delta, outputHiddenLayer, outputLayer.weights))
         outputLayer.update_weights(final, delta)
-
+    print(final)
     # final = outputLayer.computeLayer(delta)
     # mPercentage = np.sum(final[0])
     # bPercentage = np.sum(final[1])
