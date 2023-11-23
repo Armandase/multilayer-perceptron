@@ -4,40 +4,15 @@ import numpy as np
 from sklearn import preprocessing
 from Layer import Layer
 import math
-from constants import *
+from math_functions import *
 
 epochs = 90
 layer = 3 
-node_per_layer = 24
+node_per_layer = 10
 learning_rate = 0.15
 percentage_from_data = 0.85
 
-def binaryCrossEntropy(output, y_train):
-    result = - 1/y_train.shape[0]
-    sum = 0
-    mean = 0
-    for element in output:
-        mean += element
-    mean /= len(output)
-    for i in range(y_train.shape[0]):
-        sum += (y_train[i] * math.log(mean)) + ((1 - y_train[i]) * math.log(1 - mean))
-    return result * sum
 
-def softmax(z):
-    assert len(z.shape) == 2
-    s = np.max(z, axis=1)
-    s = s[:, np.newaxis] # necessary step to do broadcasting
-    e_x = np.exp(z - s)
-    div = np.sum(e_x, axis=1)
-    div = div[:, np.newaxis] # dito
-    return e_x / div
-
-def sigmoid(x):
-    return (1 / (1 + np.exp(-x)))
-
-def softmax(Z):
-    expZ = np.exp(Z)
-    return expZ / np.sum(expZ)
 
 def one_hot(y_train):
     one_hot = np.zeros((y_train.size, y_train.max() + 1))
@@ -54,35 +29,11 @@ def normalize_data(x_train):
     min_val = np.min(x_train)
     max_val = np.max(x_train)
     x_train = (x_train - min_val) / (max_val - min_val)
+    return x_train
 
-def derivative_cost(output, waited):
-    return 2 * (output - waited)
 
-def derivative(Z, fn):
-    if fn == SIGMOID:
-        fn = sigmoid
-    elif fn == SOFTMAX:
-        fn = softmax
-    return fn(Z) * (1 - fn(Z))
-
-def optimal_weights(output, waited, sub_output, fn):
-    if fn == SIGMOID:
-        activation = sigmoid
-    elif fn == SOFTMAX:
-        activation = softmax
-    
-    cost_res_weights = sub_output * derivative(output, fn) * derivative_cost(output, waited)
-    print(cost_res_weights)
-    return cost_res_weights
-
-def main():
-    if len(sys.argv) != 2:
-        print("Wrong number of args")
-        exit (1)
-
-    data = pd.read_csv(sys.argv[1], header=None)
+def init_data(data):
     data = data.drop(0, axis=1)
-    
     # create y train (waited output of our neural network)
     y_train = data[1].copy()
     y_train = y_train[:round(data.shape[0] * percentage_from_data)]
@@ -93,34 +44,57 @@ def main():
     data = data.drop(1, axis=1)
     # initialize x values (input of our neural network)
     x_train = pd.DataFrame(data[0:round(data.shape[0] * percentage_from_data)].values)
-    x_valid = pd.DataFrame(data[x_train.shape[0]:data.shape[0]].values)
     x_train = np.array(x_train)
-    # x_train = normalize_data(x_train)
+    x_train = normalize_data(x_train)
+    return y_train, x_train
 
-    inputLayer = Layer(10, x_train.shape[1], sigmoid)
-    hiddenLayer1 = Layer(10, 10,sigmoid)
-    # outputLayer = Layer(10, softmax, 10)
-    outputLayer = Layer(2, 10, softmax)
+def backpropagation_layer(above_deriv_Z, above_weights, output, input):
+    m = input.shape[0]
+    
+    print("above_deriv_Z", above_deriv_Z.shape)
+    print("above_weights", above_weights.shape)
+    dZ = (1/m) * above_weights.T.dot(above_deriv_Z) * derivative(output, SIGMOID)
+    input = np.expand_dims(input, axis=1)
+    print("Input shape layer", input.shape)
+    print("dZ shape layer", dZ.shape)
+    dW = (1/m) * dZ.dot(input)
+    dB = (1/m) * np.sum(dZ, axis=1, keepdims=True)
+    return (dZ, dW, dB) 
+
+def backpropagation_last_layer(output, waited_output, input):
+    m = input.shape[0]
+    
+    dZ = (output - waited_output)
+    dZ = np.expand_dims(dZ, axis=1)
+    input = np.expand_dims(input, axis=1)
+    dW = (1/m) * dZ.dot(input.T)
+    dB = (1/m) * np.sum(dZ, axis=1, keepdims=True)
+    print("dW shape last layer", dW.shape)
+    return (dZ, dW, dB) 
+
+def main():
+    if len(sys.argv) != 2:
+        print("Wrong number of args")
+        exit (1)
+
+    data = pd.read_csv(sys.argv[1], header=None)
+    y_train, x_train = init_data(data)
+    y_train = one_hot(y_train)
+    inputLayer = Layer(node_per_layer, x_train[0].shape[0], sigmoid)
+    hiddenLayer1 = Layer(node_per_layer, node_per_layer,sigmoid)
+    outputLayer = Layer(2, node_per_layer, softmax)
     
     # for x_instance in x_train:
-    x_instance = x_train[0]
-    x_instance = np.tile(x_instance, (10, 1))
-    delta = inputLayer.computeLayer(x_instance.T)
-    delta = hiddenLayer1.computeLayer(delta)
-    final = outputLayer.computeLayer(delta)
+    # x_instance = x_train[0]
+    # x_instance = np.tile(x_instance, (10, 1))
+    outputInputLayer = inputLayer.computeLayer(x_train[0])
+    outputHiddenLayer = hiddenLayer1.computeLayer(outputInputLayer)
+    final = outputLayer.computeLayer(outputHiddenLayer)
+    # print(cost_function(final, y_train[0]))
+    last_dZ, last_dW, last_dB = backpropagation_last_layer(final, y_train[0], outputHiddenLayer)
+    h1_dZ, h1_dW, h1_dB = backpropagation_layer(last_dZ, outputLayer.weights, outputHiddenLayer, outputInputLayer)
+    dZ,dW, dB = backpropagation_layer(h1_dZ, hiddenLayer1.weights, outputInputLayer, x_train[0])
 
-    mPercentage = np.sum(final[0])
-    bPercentage = np.sum(final[1])
-    
-    m_cost = (mPercentage - y_train_one_hot[0][0]) ** 2
-    b_cost = (bPercentage - y_train_one_hot[0][1]) ** 2
-
-    tmp = np.array([mPercentage, bPercentage])
-    tmp2 = np.array([y_train_one_hot[0][0], y_train_one_hot[0][1]])
-
-    updated_weights = optimal_weights(tmp, tmp2, delta[0][0], SOFTMAX)
-    # dZ = final[0] - y_train[0]
-    # dW =  1 / y_train[0] * dZ * final[0]
 
 if __name__ == "__main__":
     main()
