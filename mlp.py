@@ -67,6 +67,21 @@ def backpropagation_last_layer(output, waited_output, input):
     dB = (1/m) * np.sum(dZ, axis=1, keepdims=True)
     return (dZ, dW, dB) 
 
+def check_data(data):
+    data = data.drop(0, axis=1)
+    # create y train (waited output of our neural network)
+    y_check = data[1].copy()
+    y_check = y_check[round(data.shape[0] * percentage_from_data):data.shape[0]]
+    y_check = y_check.replace('M', 1)
+    y_check = y_check.replace('B', 0)
+    y_check = np.array(y_check)
+    data = data.drop(1, axis=1)
+    # initialize x values (input of our neural network)
+    x_check = pd.DataFrame(data[round(data.shape[0] * percentage_from_data):data.shape[0]].values)
+    x_check = np.array(x_check)
+    x_check = normalize_data(x_check)
+    return y_check, x_check
+
 def main():
     if len(sys.argv) != 2:
         print("Wrong number of args")
@@ -80,21 +95,38 @@ def main():
     outputLayer = Layer(2, node_per_layer, softmax)
     
     # for x_instance in x_train:
-    # x_instance = x_train[0]
-    x_instance = np.tile(x_train[0], (10, 1))
-    for i in range(100):
-        outputInputLayer = inputLayer.computeLayer(x_train[0])
+    sum_last_dW, sum_last_dB, sum_h1_dW, sum_h1_dB, sum_dW, sum_dB = 0,0,0,0,0,0
+    for i in range(500):
+        for j in range(x_train.shape[0]):
+            x_instance = np.tile(x_train[j], (10, 1))
+
+            outputInputLayer = inputLayer.computeLayer(x_train[j])
+            outputHiddenLayer = hiddenLayer1.computeLayer(outputInputLayer)
+            final = outputLayer.computeLayer(outputHiddenLayer)
+
+            # print(cost_function(final, y_train[0]))
+            last_dZ, last_dW, last_dB = backpropagation_last_layer(final, y_train[j], outputHiddenLayer)
+            h1_dZ, h1_dW, h1_dB = backpropagation_layer(last_dZ, outputLayer.weights, outputHiddenLayer, outputInputLayer)
+            dZ,dW, dB = backpropagation_layer(h1_dZ, hiddenLayer1.weights, outputInputLayer, x_instance)
+            sum_last_dW += last_dW
+            sum_last_dB += last_dB
+            sum_h1_dW += h1_dW
+            sum_h1_dB += h1_dB
+            sum_dW += dW
+            sum_dB += dB 
+
+        outputLayer.update_params(sum_last_dB / x_train.shape[0], sum_last_dW  / x_train.shape[0])
+        hiddenLayer1.update_params(sum_h1_dB / x_train.shape[0], sum_h1_dW / x_train.shape[0])
+        inputLayer.update_params(sum_dB / x_train.shape[0], sum_dW / x_train.shape[0])
+
+    y_check, x_check = check_data(data)
+    for i in range(x_check.shape[0]):
+        x_instance = np.tile(x_check[i], (10, 1))
+
+        outputInputLayer = inputLayer.computeLayer(x_check[i])
         outputHiddenLayer = hiddenLayer1.computeLayer(outputInputLayer)
         final = outputLayer.computeLayer(outputHiddenLayer)
-        print(final)
-
-        # print(cost_function(final, y_train[0]))
-        last_dZ, last_dW, last_dB = backpropagation_last_layer(final, y_train[0], outputHiddenLayer)
-        h1_dZ, h1_dW, h1_dB = backpropagation_layer(last_dZ, outputLayer.weights, outputHiddenLayer, outputInputLayer)
-        dZ,dW, dB = backpropagation_layer(h1_dZ, hiddenLayer1.weights, outputInputLayer, x_instance)
-        outputLayer.update_params(last_dB, last_dW)
-        hiddenLayer1.update_params(h1_dB, h1_dW)
-        inputLayer.update_params(dB, dW)
+        print("waited value: ", y_check[i], " output value: ", final)
 
 if __name__ == "__main__":
     main()
