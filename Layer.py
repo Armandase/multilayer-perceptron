@@ -15,8 +15,8 @@ class Layer:
         output = self.activation(Z1)
         return output  
     
-    def update_params(dB, dW):
-        self.weights = self.weights - learning_rate * dW
-        self.bias = self.bias - learning_rate * dB
+    def update_params(self, dB, dW):
+        self.weights = self.weights - self.learning_rate * dW
+        self.bias = self.bias - self.learning_rate * dB
 
 

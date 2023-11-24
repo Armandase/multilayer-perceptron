@@ -51,12 +51,8 @@ def init_data(data):
 def backpropagation_layer(above_deriv_Z, above_weights, output, input):
     m = input.shape[0]
     
-    print("above_deriv_Z", above_deriv_Z.shape)
-    print("above_weights", above_weights.shape)
     dZ = (1/m) * above_weights.T.dot(above_deriv_Z) * derivative(output, SIGMOID)
-    input = np.expand_dims(input, axis=1)
-    print("Input shape layer", input.shape)
-    print("dZ shape layer", dZ.shape)
+    # input = np.expand_dims(input, axis=1)
     dW = (1/m) * dZ.dot(input)
     dB = (1/m) * np.sum(dZ, axis=1, keepdims=True)
     return (dZ, dW, dB) 
@@ -69,7 +65,6 @@ def backpropagation_last_layer(output, waited_output, input):
     input = np.expand_dims(input, axis=1)
     dW = (1/m) * dZ.dot(input.T)
     dB = (1/m) * np.sum(dZ, axis=1, keepdims=True)
-    print("dW shape last layer", dW.shape)
     return (dZ, dW, dB) 
 
 def main():
@@ -86,15 +81,20 @@ def main():
     
     # for x_instance in x_train:
     # x_instance = x_train[0]
-    # x_instance = np.tile(x_instance, (10, 1))
-    outputInputLayer = inputLayer.computeLayer(x_train[0])
-    outputHiddenLayer = hiddenLayer1.computeLayer(outputInputLayer)
-    final = outputLayer.computeLayer(outputHiddenLayer)
-    # print(cost_function(final, y_train[0]))
-    last_dZ, last_dW, last_dB = backpropagation_last_layer(final, y_train[0], outputHiddenLayer)
-    h1_dZ, h1_dW, h1_dB = backpropagation_layer(last_dZ, outputLayer.weights, outputHiddenLayer, outputInputLayer)
-    dZ,dW, dB = backpropagation_layer(h1_dZ, hiddenLayer1.weights, outputInputLayer, x_train[0])
+    x_instance = np.tile(x_train[0], (10, 1))
+    for i in range(100):
+        outputInputLayer = inputLayer.computeLayer(x_train[0])
+        outputHiddenLayer = hiddenLayer1.computeLayer(outputInputLayer)
+        final = outputLayer.computeLayer(outputHiddenLayer)
+        print(final)
 
+        # print(cost_function(final, y_train[0]))
+        last_dZ, last_dW, last_dB = backpropagation_last_layer(final, y_train[0], outputHiddenLayer)
+        h1_dZ, h1_dW, h1_dB = backpropagation_layer(last_dZ, outputLayer.weights, outputHiddenLayer, outputInputLayer)
+        dZ,dW, dB = backpropagation_layer(h1_dZ, hiddenLayer1.weights, outputInputLayer, x_instance)
+        outputLayer.update_params(last_dB, last_dW)
+        hiddenLayer1.update_params(h1_dB, h1_dW)
+        inputLayer.update_params(dB, dW)
 
 if __name__ == "__main__":
     main()
