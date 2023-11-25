@@ -1,17 +1,18 @@
 import numpy as np
 from constants import *
 
-
 def binaryCrossEntropy(output, y_train):
-    result = - 1/y_train.shape[0]
-    sum = 0
-    mean = 0
-    for element in output:
-        mean += element
-    mean /= len(output)
-    for i in range(y_train.shape[0]):
-        sum += (y_train[i] * math.log(mean)) + ((1 - y_train[i]) * math.log(1 - mean))
+    n = y_train.shape[0]
+    
+    result = -1 / n
+    sum = np.sum(y_train * np.log(output)) + ((1 - y_train) * np.log(1 - output))
     return result * sum
+
+def crossEntropy(output, y_train):
+    return -np.sum(y_train * np.log(output))
+
+def entropy(output, y_train):
+    return -np.sum(y_train * np.log(y_train))
 
 def softmax(z):
     assert len(z.shape) == 2
@@ -38,15 +39,6 @@ def derivative(Z, fn):
     elif fn == SOFTMAX:
         fn = softmax
     return fn(Z) * (1 - fn(Z))
-
-def optimal_weights(output, waited, sub_output, fn):
-    if fn == SIGMOID:
-        activation = sigmoid
-    elif fn == SOFTMAX:
-        activation = softmax
-    
-    cost_res_weights = sub_output * derivative(output, fn) * derivative_cost(output, waited)
-    return cost_res_weights
 
 def cost_function(output, waited):
     m = waited.shape[0]

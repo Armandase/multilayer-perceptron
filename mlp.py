@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 from sklearn import preprocessing
 from Layer import Layer
-import math
 from math_functions import *
 
 epochs = 90
@@ -11,8 +10,6 @@ layer = 3
 node_per_layer = 10
 learning_rate = 0.15
 percentage_from_data = 0.85
-
-
 
 def one_hot(y_train):
     one_hot = np.zeros((y_train.size, y_train.max() + 1))
@@ -59,9 +56,11 @@ def backpropagation_layer(above_deriv_Z, above_weights, output, input):
 
 def backpropagation_last_layer(output, waited_output, input):
     m = input.shape[0]
-    
-    dZ = (output - waited_output)
+
+    dZ = binaryCrossEntropy(output, waited_output)
+    # dZ = (output - waited_output)
     dZ = np.expand_dims(dZ, axis=1)
+    # print("DZ:", dZ)
     input = np.expand_dims(input, axis=1)
     dW = (1/m) * dZ.dot(input.T)
     dB = (1/m) * np.sum(dZ, axis=1, keepdims=True)
@@ -95,8 +94,8 @@ def main():
     outputLayer = Layer(2, node_per_layer, softmax)
     
     # for x_instance in x_train:
-    sum_last_dW, sum_last_dB, sum_h1_dW, sum_h1_dB, sum_dW, sum_dB = 0,0,0,0,0,0
     for i in range(500):
+        sum_last_dW, sum_last_dB, sum_h1_dW, sum_h1_dB, sum_dW, sum_dB = 0,0,0,0,0,0
         for j in range(x_train.shape[0]):
             x_instance = np.tile(x_train[j], (10, 1))
 
@@ -130,6 +129,12 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
+#plot data
+
+# binary cross entropy
+
+    
     
 # back prop:
 # dZ[n] : error in last layer
