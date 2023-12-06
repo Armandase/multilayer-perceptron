@@ -10,33 +10,13 @@ class Layer:
         self.learning_rate = 1
 
     def computeLayer(self, input):
-        
         # Z1 = self.weights.dot(input) + self.bias
         Z1 = self.weights.dot(input)
         output = self.activation(Z1)
         return output
 
-    def binaryCrossEntropy(output, y_train):
-        result = - 1 / y_train.shape[0]
-        sum = 0
-        mean = 0
-        for element in output:
-            mean += element
-        mean /= len(output)
-        for i in range(y_train.shape[0]):
-            sum += (y_train[i] * math.log(mean)) + ((1 - y_train[i]) * math.log(1 - mean))
-        return result * sum
-    
-    def cost(output, waited): 
-        return (output - waited) ** 2
-        
-    def sigmoid(Z):
-        return (1 / (1 + np.exp(-Z)))
-    def softmax(Z):
-        expZ = np.exp(Z)
-        return expZ / np.sum(expZ)
-    
     def deltaOutputLayer(self, waited_output, output):
+        # for i in range(len(output)):
         delta = output * (1 - output) * (waited_output - output)
         return delta
     

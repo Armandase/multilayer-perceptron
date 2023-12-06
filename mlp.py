@@ -8,34 +8,25 @@ from constants import *
 
 epochs = 90
 layer = 3 
-node_per_layer = 24
+node_per_layer = 30
 learning_rate = 0.15
-percentage_from_data = 0.85
+batch_size = 100
 
 def binaryCrossEntropy(output, y_train):
-    result = - 1/y_train.shape[0]
+    n = y_train.shape[0]
+    
     sum = 0
-    mean = 0
-    for element in output:
-        mean += element
-    mean /= len(output)
-    for i in range(y_train.shape[0]):
-        sum += (y_train[i] * math.log(mean)) + ((1 - y_train[i]) * math.log(1 - mean))
-    return result * sum
-
-def softmax(z):
-    assert len(z.shape) == 2
-    s = np.max(z, axis=1)
-    s = s[:, np.newaxis] # necessary step to do broadcasting
-    e_x = np.exp(z - s)
-    div = np.sum(e_x, axis=1)
-    div = div[:, np.newaxis] # dito
-    return e_x / div
+    for i in range(n):
+        pred = output[0, :][0]
+        sum += y_train[i] * np.log(pred) + ((1 - y_train[i]) * np.log(1 - pred))
+    return sum  / n * -1
+    # return result * sum
 
 def sigmoid(x):
     return (1 / (1 + np.exp(-x)))
 
 def softmax(Z):
+    print("shape:", Z.shape)
     expZ = np.exp(Z)
     return expZ / np.sum(expZ)
 
@@ -66,28 +57,28 @@ def derivative(Z, fn):
         fn = softmax
     return fn(Z) * (1 - fn(Z))
 
-def optimal_weights(output, waited, sub_output, fn):
-    if fn == SIGMOID:
-        activation = sigmoid
-    elif fn == SOFTMAX:
-        activation = softmax
+# def optimal_weights(output, waited, sub_output, fn):
+#     if fn == SIGMOID:
+#         activation = sigmoid
+#     elif fn == SOFTMAX:
+#         activation = softmax
     
-    cost_res_weights = sub_output * derivative(output, fn) * derivative_cost(output, waited)
-    return cost_res_weights
+#     cost_res_weights = sub_output * derivative(output, fn) * derivative_cost(output, waited)
+#     return cost_res_weights
 
 def init_data(data):
     data = data.drop(0, axis=1)
     
     # create y train (waited output of our neural network)
     y_train = data[1].copy()
-    y_train = y_train[:round(data.shape[0] * percentage_from_data)]
+    y_train = y_train[:batch_size]
     y_train = y_train.replace('M', 1)
     y_train = y_train.replace('B', 0)
     y_train = np.array(y_train)
     data = data.drop(1, axis=1)
     # initialize x values (input of our neural network)
-    x_train = pd.DataFrame(data[0:round(data.shape[0] * percentage_from_data)].values)
-    x_valid = pd.DataFrame(data[x_train.shape[0]:data.shape[0]].values)
+    x_train = pd.DataFrame(data[:batch_size].values)
+    x_valid = pd.DataFrame(data[batch_size:data.shape[0]].values)
     x_train = np.array(x_train)
     x_train = normalize_data(x_train)
     return x_train, y_train
@@ -95,12 +86,12 @@ def init_data(data):
 def prediction(data):
     data = data.drop(0, axis=1)
     y_check = data[1].copy()
-    y_check = y_check[round(data.shape[0] * percentage_from_data):data.shape[0]]
+    y_check = y_check[batch_size:data.shape[0]]
     y_check = y_check.replace('M', 1)
     y_check = y_check.replace('B', 0)
     y_check = np.array(y_check)
     data = data.drop(1, axis=1)
-    x_check = pd.DataFrame(data[round(data.shape[0] * percentage_from_data):data.shape[0]].values)
+    x_check = pd.DataFrame(data[batch_size:data.shape[0]].values)
     x_check = np.array(x_check)
     for i in range(x_check.shape[0]):
         outputHiddenLayer = hiddenLayer.computeLayer(x_check[i])
@@ -114,38 +105,31 @@ def main():
 
     data = pd.read_csv(sys.argv[1], header=None)
     x_train, y_train = init_data(data)
-    # y_train_one_hot = one_hot(y_train)
+    y_train_one_hot = one_hot(y_train)
 
-    hiddenLayer = Layer(2, x_train[0].shape[0], sigmoid)
-    outputLayer = Layer(1, 2,sigmoid)
-    # outputLayer = Layer(10, softmax, 10)
+    inputLayer = Layer(node_per_layer, x_train.shape[0], sigmoid)
+    hiddenLayer = Layer(node_per_layer, node_per_layer,sigmoid)
+    outputLayer = Layer(2, node_per_layer, softmax)
     
     # x_instance = x_train[0]
-    # x_instance = np.tile(x_instance, (2, 1))
+    final = np.array([0, 0])
+    for j in range(1000):
+    # for i in range(x_train.shape[0]):
+        output_inputLayer = inputLayer.computeLayer(x_train)
+        output_hiddenLayer = hiddenLayer.computeLayer(output_inputLayer)
+        final = outputLayer.computeLayer(output_hiddenLayer)
 
-    # for j in range(1000):
-    for i in range(x_train.shape[0]):
-        outputHiddenLayer = hiddenLayer.computeLayer(x_train[i])
-        final = outputLayer.computeLayer(outputHiddenLayer)
+        if j % 100 == 0:
+            entropy = binaryCrossEntropy(final, y_train)
+            print("Entropy:", entropy)
+        
+        deltaFinal = outputLayer.deltaOutputLayer(y_train_one_hot, final)
+        deltaHidden = hiddenLayer.deltaHiddenLayer(deltaFinal, output_hiddenLayer, outputLayer.weights)
 
-        delta = outputLayer.deltaOutputLayer(y_train[i], final)
-        hiddenLayer.update_weights(outputHiddenLayer, hiddenLayer.deltaHiddenLayer(delta, outputHiddenLayer, outputLayer.weights))
-        outputLayer.update_weights(final, delta)
-    print(final)
-    # final = outputLayer.computeLayer(delta)
-    # mPercentage = np.sum(final[0])
-    # bPercentage = np.sum(final[1])
-    
-    # m_cost = (mPercentage - y_train_one_hot[0][0]) ** 2
-    # b_cost = (bPercentage - y_train_one_hot[0][1]) ** 2
-
-    # tmp = np.array([mPercentage, bPercentage])
-    # tmp2 = np.array([y_train_one_hot[0][0], y_train_one_hot[0][1]])
-
-    # updated_weights = optimal_weights(tmp, tmp2, delta[0][0], SOFTMAX)
-
-    # dZ = final[0] - y_train[0]
-    # dW =  1 / y_train[0] * dZ * final[0]
+        inputLayer.update_weights(output_inputLayer, inputLayer.deltaHiddenLayer(deltaHidden, output_inputLayer, hiddenLayer.weights))
+        hiddenLayer.update_weights(output_hiddenLayer, deltaHidden)
+        outputLayer.update_weights(final, deltaFinal)
+    print("Final result:", final)
 
 if __name__ == "__main__":
     main()
