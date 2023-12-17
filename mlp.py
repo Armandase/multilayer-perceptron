@@ -49,15 +49,16 @@ def main():
     except:
         print("Parsing error.") 
         exit(1)
-    x_train, y_train = init_data(data, batch_size)
 
     inputLayer = Layer(node_per_layer, nb_feature, sigmoid)
     hiddenLayer = Layer(node_per_layer, node_per_layer,sigmoid)
     outputLayer = Layer(2, node_per_layer, softmax)
 
+    random.seed()
+    np.random.seed()
     for j in range(epochs):
+        x_train, y_train = init_data(data, batch_size)
         
-
         inputLayer.computeLayer(x_train)
         hiddenLayer.computeLayer(inputLayer.output)
         final = outputLayer.computeLayer(hiddenLayer.output)
