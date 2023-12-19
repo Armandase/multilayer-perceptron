@@ -9,33 +9,32 @@ class Layer:
         self.activation = funcActivation
         self.weights = np.random.rand(input_len, nodes) / np.sqrt(input_len)
         rng = np.random.default_rng()
-        self.learning_rate = 1
+        self.learning_rate = 0.0001
         self.input = None
         self.output = None
+        self.aggregation = None
+
+    def derivate(self, Z):
+        return self.activation(Z) * (1 - self.activation(Z))
 
     def computeLayer(self, input):
-        self.input = np.array(input)
+        self.input = input
     
-        Z1 = np.dot(input, self.weights) + self.bias
-        self.output = np.array(self.activation(Z1))
+        self.aggregation = np.dot(input, self.weights) + self.bias
+        self.output = self.activation(self.aggregation)
         return self.output
 
     def deltaOutputLayer(self, waited_output):
-        # delta = np.empty([self.output.shape[0], 2])
-        # for i in range(self.output.shape[0]):
-        #     if waited_output[i] == 0:
-        #         delta[i] = np.array([self.output[i][0] - 1, self.output[i][1] - 0])
-        #     else:
-        #         delta[i] = np.array([self.output[i][0] - 0, self.output[i][1] - 1])
-
         one_hot_y_train = one_hot(waited_output)
         delta = self.output - one_hot_y_train
+        # delta = self.derivate(self.aggregation) * delta
         res = np.dot(delta, self.weights.T)
         return res
     
     # call this function in reverse order.
     def deltaHiddenLayer(self, above_delta):
-        delta = above_delta * (1 - self.output) * self.output
+        delta = above_delta * ((1 - self.output) * self.output)
+        # delta = self.derivate(self.aggregation) * above_delta
         res = np.dot(delta, self.weights.T)
         return res
 

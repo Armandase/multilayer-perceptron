@@ -8,7 +8,7 @@ import math
 from constants import *
 import random
 
-epochs = 300
+epochs = 3000
 node_per_layer = 20
 learning_rate = 0.0001
 batch_size = 100
@@ -27,14 +27,9 @@ def sigmoid(x):
     return (1 / (1 + np.exp(-x)))
 
 def softmax(Z):
-    exp_sum = np.sum(np.exp(Z), axis=1)
-    for i in range(exp_sum.shape[0]):
-        if np.isnan(exp_sum[i]):
-            print(Z)
-            exit()
-    y_pred = np.empty([Z.shape[0], 2])
-    for i in range(Z.shape[0]):
-        y_pred[i] = np.exp(Z[i]) / exp_sum[i]
+    #prevent overflows by subtracting max values
+    Z_exp = np.exp(Z - np.max(Z, axis=1, keepdims=True))
+    y_pred = Z_exp / np.sum(Z_exp, axis=1, keepdims=True)
     return y_pred
 
 def main():
