@@ -10,7 +10,7 @@ import random
 
 epochs = 3000
 node_per_layer = 20
-learning_rate = 0.0001
+learning_rate = 0.01
 batch_size = 100
 nb_feature = 30
 
@@ -62,14 +62,14 @@ def main():
             entropy = binaryCrossEntropy(final, y_train)
             print("Entropy:", entropy)
         
-        deltaFinal = outputLayer.deltaOutputLayer(y_train)
-        deltaHidden = hiddenLayer.deltaHiddenLayer(deltaFinal)
-        deltaInput = inputLayer.deltaHiddenLayer(deltaHidden)
+        deltaFinal, noProdFinal = outputLayer.deltaOutputLayer(y_train)
+        deltaHidden, noProdHidden = hiddenLayer.deltaHiddenLayer(deltaFinal)
+        deltaInput, noProdInput = inputLayer.deltaHiddenLayer(deltaHidden)
 
-        inputLayer.update_weights(deltaInput)
-        hiddenLayer.update_weights(deltaHidden)
-        outputLayer.update_weights(deltaFinal)
-
+        inputLayer.update_weights(noProdInput, x_train)
+        hiddenLayer.update_weights(noProdHidden, inputLayer.output)
+        outputLayer.update_weights(noProdFinal, hiddenLayer.output)
+        # exit()
     sum = 0
     for i in range(final.shape[0]):
         print("Waited: ", y_train[i], " Get: ",  final[i])
