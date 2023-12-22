@@ -6,6 +6,8 @@ def one_hot(y_train):
     one_hot = np.zeros((y_train.size, y_train.max() + 1))
     n_values = np.max(y_train) + 1
     one_hot = np.eye(n_values)[y_train]
+
+    one_hot = np.where(one_hot == 1, 0, 1)
     return one_hot
 
 def normalize_data(x_train):
@@ -19,15 +21,17 @@ def init_data(data, batch_size):
     data_x = data_y.drop(1, axis=1)
     data_y = data_y[1].replace('M', 1).replace('B', 0)
     # create y train (waited output of our neural network)
-    y_train = []
-    x_train = []
-    for i in range(batch_size):
-        idx = random.randrange(data.shape[0])
-        label = data_y[idx]
-        features = data_x.iloc[idx].values
+    # y_train = []
+    # x_train = []
+    # for i in range(batch_size):
+    #     idx = random.randrange(data.shape[0])
+    #     label = data_y[idx]
+    #     features = data_x.iloc[idx].values
         
-        y_train.append(label)
-        x_train.append(features)
+    #     y_train.append(label)
+    #     x_train.append(features)
+    y_train = data_y[:batch_size]
+    x_train = data_x[:batch_size]
 
     x_train = normalize_data(np.array(x_train))
     y_train = np.array(y_train)

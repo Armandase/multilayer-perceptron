@@ -8,9 +8,9 @@ import math
 from constants import *
 import random
 
-epochs = 3000
+epochs = 100000
 node_per_layer = 20
-learning_rate = 0.01
+learning_rate = 0.0001
 batch_size = 100
 nb_feature = 30
 
@@ -23,9 +23,11 @@ def binaryCrossEntropy(output, y_train):
         sum += y_train[i] * np.log(pred) + ((1 - y_train[i]) * np.log(1 - pred))
     return sum  / n * -1
 
+#tested and approved :)
 def sigmoid(x):
     return (1 / (1 + np.exp(-x)))
 
+#tested and approved :)
 def softmax(Z):
     #prevent overflows by subtracting max values
     Z_exp = np.exp(Z - np.max(Z, axis=1, keepdims=True))
@@ -37,17 +39,17 @@ def main():
         print("Wrong number of args")
         exit (1)
 
-    random.seed(10)
-    np.random.seed(10)
+    # random.seed(10)
+    # np.random.seed(10)
     try:
         data = pd.read_csv(sys.argv[1], header=None)
     except:
         print("Parsing error.") 
         exit(1)
 
-    inputLayer = Layer(node_per_layer, nb_feature, sigmoid)
-    hiddenLayer = Layer(node_per_layer, node_per_layer,sigmoid)
-    outputLayer = Layer(2, node_per_layer, softmax)
+    inputLayer = Layer(node_per_layer, nb_feature, sigmoid, learning_rate)
+    hiddenLayer = Layer(node_per_layer, node_per_layer,sigmoid, learning_rate)
+    outputLayer = Layer(2, node_per_layer, softmax, learning_rate)
 
     random.seed()
     np.random.seed()
@@ -58,17 +60,13 @@ def main():
         hiddenLayer.computeLayer(inputLayer.output)
         final = outputLayer.computeLayer(hiddenLayer.output)
 
-        if j % 100 == epochs / (len(str(epochs)) * 10):
+        if j % 100 == 0:
             entropy = binaryCrossEntropy(final, y_train)
             print("Entropy:", entropy)
         
-        deltaFinal, noProdFinal = outputLayer.deltaOutputLayer(y_train)
-        deltaHidden, noProdHidden = hiddenLayer.deltaHiddenLayer(deltaFinal)
-        deltaInput, noProdInput = inputLayer.deltaHiddenLayer(deltaHidden)
-
-        inputLayer.update_weights(noProdInput, x_train)
-        hiddenLayer.update_weights(noProdHidden, inputLayer.output)
-        outputLayer.update_weights(noProdFinal, hiddenLayer.output)
+        deltaFinal = outputLayer.deltaOutputLayer(y_train)
+        deltaHidden = hiddenLayer.deltaHiddenLayer(deltaFinal)
+        deltaInput = inputLayer.deltaHiddenLayer(deltaHidden)
         # exit()
     sum = 0
     for i in range(final.shape[0]):
