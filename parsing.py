@@ -2,22 +2,48 @@ import numpy as np
 import pandas as pd
 import random
 
-def one_hot(y_train):
-    one_hot = np.zeros((y_train.size, y_train.max() + 1))
-    n_values = np.max(y_train) + 1
-    one_hot = np.eye(n_values)[y_train]
+def one_hot(labels):
+    """
+    Converts categorical labels into one-hot encoded representation.
+
+    Parameters:
+    - labels (numpy array): 1-dimensional array containing categorical labels.
+
+    Returns:
+    - numpy array: 2-dimensional array representing the one-hot encoded labels.
+
+    Example:
+    >>> labels = np.array([0, 1, 1, 0])
+    >>> one_hot(labels)
+    array([[1, 0],
+           [0, 1],
+           [0, 1],
+           [1, 0]])
+    """
+    one_hot = np.zeros((labels.size, labels.max() + 1))
+    n_values = np.max(labels) + 1
+    one_hot = np.eye(n_values)[labels]
 
     one_hot = np.where(one_hot == 1, 0, 1)
     return one_hot
 
-def normalize_data(x_train):
-    min_list = np.min(x_train, axis=0)
-    max_list = np.max(x_train, axis=0)
-    x_train = (x_train - min_list) / (max_list - min_list)
-    return (x_train)
+def normalize_data(dataset):
+    """
+    Normalizes the input dataset by scaling each feature to a range of [0, 1].
+    0 represents the minimum value and 1 the maximum.
+
+    Parameters:
+    - dataset (numpy.ndarray): The input dataset with numerical values.
+
+    Returns:
+    - numpy.ndarray: The normalized dataset with values scaled to the range [0, 1].
+    """
+    min_list = np.min(dataset, axis=0)
+    max_list = np.max(dataset, axis=0)
+    dataset = (dataset - min_list) / (max_list - min_list)
+    return dataset
 
 def init_data(data_x, data_y, batch_size):
-    # create y train (waited output of our neural network)
     indexes = np.random.randint(0, data_x.shape[0], batch_size)
     y_train = data_y[indexes]
     x_train = data_x.iloc[indexes].values

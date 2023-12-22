@@ -9,8 +9,8 @@ from constants import *
 import random
 
 epochs = 15000
-node_per_layer = 50
-learning_rate = 0.001
+node_per_layer = 60
+learning_rate = 0.0009
 batch_size = 100
 nb_feature = 30
 
