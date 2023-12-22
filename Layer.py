@@ -4,7 +4,6 @@ from parsing import *
 
 class Layer:
     def __init__(self, nodes, input_len ,funcActivation, learning_rate):
-        self.nodes = nodes
         self.bias = np.zeros(nodes)
         self.activation = funcActivation
         self.weights = np.random.rand(input_len, nodes) / np.sqrt(input_len)
@@ -27,9 +26,10 @@ class Layer:
         delta_weights = np.dot(self.input.T, delta) * self.learning_rate
         self.weights = self.weights - delta_weights
 
+        delta_bias = np.sum(delta, axis=0)
+        self.bias = self.bias - delta_bias * self.learning_rate
+
         res = np.dot(delta, self.weights.T)
-        # delta_bias = np.sum(delta, axis=0)
-        # print(delta_bias)
         return res
     
     def deltaHiddenLayer(self, above_delta):
@@ -37,6 +37,9 @@ class Layer:
 
         delta_weights = np.dot(self.input.T, delta) * self.learning_rate
         self.weights = self.weights - delta_weights
+
+        delta_bias = np.sum(delta, axis=0)
+        self.bias = self.bias - delta_bias * self.learning_rate
 
         res = np.dot(delta, self.weights.T)
         return res

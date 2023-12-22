@@ -8,9 +8,9 @@ import math
 from constants import *
 import random
 
-epochs = 100000
-node_per_layer = 20
-learning_rate = 0.0001
+epochs = 15000
+node_per_layer = 50
+learning_rate = 0.001
 batch_size = 100
 nb_feature = 30
 
@@ -23,11 +23,9 @@ def binaryCrossEntropy(output, y_train):
         sum += y_train[i] * np.log(pred) + ((1 - y_train[i]) * np.log(1 - pred))
     return sum  / n * -1
 
-#tested and approved :)
 def sigmoid(x):
     return (1 / (1 + np.exp(-x)))
 
-#tested and approved :)
 def softmax(Z):
     #prevent overflows by subtracting max values
     Z_exp = np.exp(Z - np.max(Z, axis=1, keepdims=True))
@@ -39,8 +37,8 @@ def main():
         print("Wrong number of args")
         exit (1)
 
-    # random.seed(10)
-    # np.random.seed(10)
+    random.seed(10)
+    np.random.seed(10)
     try:
         data = pd.read_csv(sys.argv[1], header=None)
     except:
@@ -53,8 +51,11 @@ def main():
 
     random.seed()
     np.random.seed()
+    data_y = data.drop(0, axis=1)
+    data_x = data_y.drop(1, axis=1)
+    data_y = data_y[1].replace('M', 1).replace('B', 0)
     for j in range(epochs):
-        x_train, y_train = init_data(data, batch_size)
+        x_train, y_train = init_data(data_x, data_y, batch_size)
         
         inputLayer.computeLayer(x_train)
         hiddenLayer.computeLayer(inputLayer.output)
@@ -68,6 +69,7 @@ def main():
         deltaHidden = hiddenLayer.deltaHiddenLayer(deltaFinal)
         deltaInput = inputLayer.deltaHiddenLayer(deltaHidden)
         # exit()
+    print(inputLayer.bias)
     sum = 0
     for i in range(final.shape[0]):
         print("Waited: ", y_train[i], " Get: ",  final[i])
@@ -75,7 +77,8 @@ def main():
             sum += y_train[i] - final[i][0]
         else:
             sum += final[i][0]
-    print("Accurancy: ", sum / final.shape[0])
+    precision = sum / final.shape[0]
+    print("Accurancy: ", precision, " as ", (1 - precision) * 100, "%")
 
 
 if __name__ == "__main__":

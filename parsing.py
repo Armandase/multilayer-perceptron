@@ -16,22 +16,11 @@ def normalize_data(x_train):
     x_train = (x_train - min_list) / (max_list - min_list)
     return (x_train)
 
-def init_data(data, batch_size):
-    data_y = data.drop(0, axis=1)
-    data_x = data_y.drop(1, axis=1)
-    data_y = data_y[1].replace('M', 1).replace('B', 0)
+def init_data(data_x, data_y, batch_size):
     # create y train (waited output of our neural network)
-    # y_train = []
-    # x_train = []
-    # for i in range(batch_size):
-    #     idx = random.randrange(data.shape[0])
-    #     label = data_y[idx]
-    #     features = data_x.iloc[idx].values
-        
-    #     y_train.append(label)
-    #     x_train.append(features)
-    y_train = data_y[:batch_size]
-    x_train = data_x[:batch_size]
+    indexes = np.random.randint(0, data_x.shape[0], batch_size)
+    y_train = data_y[indexes]
+    x_train = data_x.iloc[indexes].values
 
     x_train = normalize_data(np.array(x_train))
     y_train = np.array(y_train)
