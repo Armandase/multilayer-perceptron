@@ -45,12 +45,17 @@ def normalize_data(dataset):
 
 def init_data(data_x, data_y, batch_size):
     indexes = np.random.randint(0, data_x.shape[0], batch_size)
-    y_train = data_y[indexes]
-    x_train = data_x.iloc[indexes].values
+    remaining_indexes = np.setdiff1d(np.arange(data_x.shape[0]), indexes)
 
+    y_train = np.array(data_y[indexes])
+    x_train = data_x.iloc[indexes].values
     x_train = normalize_data(np.array(x_train))
-    y_train = np.array(y_train)
-    return x_train, y_train
+
+    y_valid = np.array(data_y[remaining_indexes])
+
+    x_valid = data_x.iloc[remaining_indexes].values
+    x_valid = normalize_data(np.array(x_valid))
+    return x_train, y_train, x_valid, y_valid
 
 def prediction(data, inputLayer, hiddenLayer, outputLayer):
     data = data.drop(0, axis=1)

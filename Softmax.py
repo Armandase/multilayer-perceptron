@@ -16,8 +16,6 @@ class Softmax(Layer):
         res = np.dot(delta, self.weights.T)
         return res
 
-    
-    # def softmax(Z):
     def activation_function(self, Z):
         #prevent overflows by subtracting max values
         Z_exp = np.exp(Z - np.max(Z, axis=1, keepdims=True))

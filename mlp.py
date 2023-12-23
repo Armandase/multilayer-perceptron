@@ -30,8 +30,8 @@ def main(data_path: str):
     except:
         print("Parsing error.") 
         exit(1)
-    # random.seed(95)
-    # np.random.seed(95)
+    random.seed(95)
+    np.random.seed(95)
     net = Network()
     net.addLayers(Sigmoid(node_per_layer, nb_feature, learning_rate))
     net.addLayers(Sigmoid(node_per_layer, node_per_layer, learning_rate))
@@ -46,27 +46,22 @@ def main(data_path: str):
     epoch_itr = iteration / epoch
     epoch_scaling = epoch / iteration
 
-
-
-    x_pred, y_pred = init_data(data_x, data_y, data_x.shape[0])
-
     for j in range(iteration):
-        x_train, y_train = init_data(data_x, data_y, batch_size)
-
+        x_train, y_train, x_valid, y_valid = init_data(data_x, data_y, batch_size)
         final = net.feedforward(x_train, True)
 
         if j % epoch_itr == 0:
             loss = binaryCrossEntropy(final, y_train)
-            pred = net.feedforward(x_pred, False)
-            val_loss = binaryCrossEntropy(pred, y_pred)
+            pred = net.feedforward(x_valid, False)
+            val_loss = binaryCrossEntropy(pred, y_valid)
             
-            print("epoch: {0}/{1} - loss: {2} - val_loss: {3}".format(int(j*epoch_scaling), int(epoch), round(loss, 4), round(val_loss, 4)))
+            print("epoch: {0}/{1} - training_loss: {2} - validation_loss: {3}".format(int(j*epoch_scaling), int(epoch), round(loss, 4), round(val_loss, 4)))
         
         net.backpropagation(y_train)
 
     sum = 0
     for k in range(final.shape[0]):
-        print("Waited: ", y_train[k], " Get: ",  final[k])
+        # print("Waited: ", y_train[k], " Get: ",  final[k])
         if y_train[k] == 1:
             sum += y_train[k] - final[k][0]
         else:

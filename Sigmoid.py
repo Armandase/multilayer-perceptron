@@ -13,8 +13,6 @@ class Sigmoid(Layer):
 
         res = np.dot(delta, self.weights.T)
         return res
-
     
-    # def sigmoid(x):
     def activation_function(self, Z):
         return (1 / (1 + np.exp(-Z)))
