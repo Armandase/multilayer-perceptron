@@ -30,8 +30,8 @@ def main(data_path: str):
     except:
         print("Parsing error.") 
         exit(1)
-    random.seed(95)
-    np.random.seed(95)
+    random.seed(75)
+    np.random.seed(75)
     net = Network()
     net.addLayers(Sigmoid(node_per_layer, nb_feature, learning_rate))
     net.addLayers(Sigmoid(node_per_layer, node_per_layer, learning_rate))
