@@ -10,7 +10,7 @@ def plot_curve(epoch, loss, val_loss):
     interpolateur = interp1d(epoch, loss, kind='linear')
 
     # Générer des points intermédiaires pour une courbe plus lisse
-    x_interpol = np.linspace(epoch.min(), epoch.max(), 10)
+    x_interpol = np.linspace(epoch.min(), epoch.max(), 200)
     loss_interpol = interpolateur(x_interpol)
     val_loss_interpol = interpolateur(x_interpol)
 

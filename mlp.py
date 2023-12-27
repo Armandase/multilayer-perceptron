@@ -9,10 +9,10 @@ from parsing import *
 from Network import Network
 from plotting import plot_curve
 
-iteration = 15000
-batch_size = 100
+iteration = 10000
+batch_size = 50
 node_per_layer = 30
-learning_rate = 0.001
+learning_rate = 0.0025
 nb_feature = 30
 
 def binaryCrossEntropy(output, y_train):
@@ -31,8 +31,8 @@ def main(data_path: str):
     except:
         print("Parsing error.") 
         exit(1)
-    random.seed(75)
-    np.random.seed(75)
+    # random.seed(75)
+    # np.random.seed(75)
     net = Network()
     net.addLayers(Sigmoid(node_per_layer, nb_feature, learning_rate))
     net.addLayers(Sigmoid(node_per_layer, node_per_layer, learning_rate))
@@ -47,7 +47,7 @@ def main(data_path: str):
     epoch_itr = int(iteration / epoch)
     epoch_scaling = epoch / iteration
 
-    historic_loss = np.zeros((int(epoch), 3))
+    historic_loss = np.zeros((int(epoch)+1, 3))
     for j in range(iteration):
         x_train, y_train, x_valid, y_valid = init_data(data_x, data_y, batch_size)
         final = net.feedforward(x_train, True)
@@ -62,16 +62,21 @@ def main(data_path: str):
             print("epoch: {0}/{1} - training_loss: {2} - validation_loss: {3}".format(int(curr_idx), int(epoch), round(loss, 4), round(val_loss, 4)))
         
         net.backpropagation(y_train)
-    plot_curve(historic_loss[:, 0], historic_loss[:, 1], historic_loss[:, 2])
+    # plot_curve(historic_loss[:, 0], historic_loss[:, 1], historic_loss[:, 2])
+
+
     sum = 0
+    x_accurany, y_accuracy, x_valid, y_valid = init_data(data_x, data_y, data_x.shape[0])
+
+    final = net.feedforward(x_accurany, False)
     for k in range(final.shape[0]):
         # print("Waited: ", y_train[k], " Get: ",  final[k])
-        if y_train[k] == 1:
-            sum += y_train[k] - final[k][0]
+        if y_accuracy[k] == 1:
+            sum += y_accuracy[k] - final[k][0]
         else:
             sum += final[k][0]
     precision = sum / final.shape[0]
-    print("Accurancy: ", precision, " as ", (1 - precision) * 100, "%")
+    print("Accuracy: ", precision, " as ", (1 - precision) * 100, "%")
 
 
 
