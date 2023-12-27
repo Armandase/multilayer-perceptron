@@ -7,6 +7,7 @@ from Sigmoid import Sigmoid
 from Softmax import Softmax
 from parsing import *
 from Network import Network
+from plotting import plot_curve
 
 iteration = 15000
 batch_size = 100
@@ -43,9 +44,10 @@ def main(data_path: str):
     data_y = data_y[1].replace('M', 1).replace('B', 0)
 
     epoch = iteration / (int(data_x.shape[0] / batch_size) + 1)
-    epoch_itr = iteration / epoch
+    epoch_itr = int(iteration / epoch)
     epoch_scaling = epoch / iteration
 
+    historic_loss = np.zeros((int(epoch), 3))
     for j in range(iteration):
         x_train, y_train, x_valid, y_valid = init_data(data_x, data_y, batch_size)
         final = net.feedforward(x_train, True)
@@ -54,11 +56,13 @@ def main(data_path: str):
             loss = binaryCrossEntropy(final, y_train)
             pred = net.feedforward(x_valid, False)
             val_loss = binaryCrossEntropy(pred, y_valid)
+            curr_idx = j * epoch_scaling
+            historic_loss[int(curr_idx)] = [int(curr_idx), loss, val_loss]
             
-            print("epoch: {0}/{1} - training_loss: {2} - validation_loss: {3}".format(int(j*epoch_scaling), int(epoch), round(loss, 4), round(val_loss, 4)))
+            print("epoch: {0}/{1} - training_loss: {2} - validation_loss: {3}".format(int(curr_idx), int(epoch), round(loss, 4), round(val_loss, 4)))
         
         net.backpropagation(y_train)
-
+    plot_curve(historic_loss[:, 0], historic_loss[:, 1], historic_loss[:, 2])
     sum = 0
     for k in range(final.shape[0]):
         # print("Waited: ", y_train[k], " Get: ",  final[k])
