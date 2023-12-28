@@ -1,22 +1,22 @@
 import numpy as np
+import random
+from parsing import *
 
 class Layer:
-    def __init__(self, nodes, input_len ,funcActivation):
-        self.nodes = nodes
-        self.bias = np.zeros((nodes, 1))
-        self.activation = funcActivation
-        self.weights = np.random.rand(nodes, input_len)
-        self.learning_rate = 1
+    def __init__(self, nodes, input_len, learning_rate):
+        self.bias = np.zeros(nodes)
+        self.weights = np.random.rand(input_len, nodes) / np.sqrt(input_len)
+        # rng = np.random.default_rng()
+        self.learning_rate = learning_rate
+        self.input = None
+        self.output = None
 
-    def computeLayer(self, input):
-        # Z1 = self.weights.dot(input) + self.bias.T
-        Z1 = self.weights.dot(input)
-
-        output = self.activation(Z1)
-        return output  
+    def feedforward(self, input, train):
     
-    def update_params(self, dB, dW):
-        self.weights = self.weights - self.learning_rate * dW
-        self.bias = self.bias - self.learning_rate * dB
+        Z = np.dot(input, self.weights) + self.bias
+        output = self.activation_function(Z)
 
-
+        if train == True:
+            self.input = input
+            self.output = output
+        return output
