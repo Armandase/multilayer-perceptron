@@ -42,8 +42,27 @@ def normalize_data(dataset):
     max_list = np.max(dataset, axis=0)
     dataset = (dataset - min_list) / (max_list - min_list)
     return dataset
-
+    
 def init_data(data_x, data_y, batch_size):
+    """
+    Randomize and normalize training and validation datasets
+
+    Parameters:
+    - data_x (pd.DataFrame): The input features dataset.
+    - data_y (np.array): The corresponding labels array.
+    - batch_size (int): The size of the training batch.
+
+    Returns:
+    - x_train : Normalized training input features (len of batch_size).
+    - y_train : Training labels corresponding to x_train (len of batch_size).
+    - x_valid : Normalized validation input features (len of data_x sub batch_size).
+    - y_valid : Validation labels corresponding to x_valid (len of data_x sub batch_size).
+
+    The function randomly selects 'batch_size' samples for training from data_x,
+    and uses the remaining samples for validation. It normalizes the input features
+    using the mini-max normalization before returning the datasets.
+    """
+
     indexes = np.random.randint(0, data_x.shape[0], batch_size)
     remaining_indexes = np.setdiff1d(np.arange(data_x.shape[0]), indexes)
 
