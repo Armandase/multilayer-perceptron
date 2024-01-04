@@ -75,20 +75,3 @@ def init_data(data_x, data_y, batch_size):
     x_valid = data_x.iloc[remaining_indexes].values
     x_valid = normalize_data(np.array(x_valid))
     return x_train, y_train, x_valid, y_valid
-
-def prediction(data, inputLayer, hiddenLayer, outputLayer):
-    data = data.drop(0, axis=1)
-    y_check = data[1].copy()
-    y_check = y_check[batch_size:data.shape[0]]
-    y_check = y_check.replace('M', 1)
-    y_check = y_check.replace('B', 0)
-    y_check = np.array(y_check)
-    data = data.drop(1, axis=1)
-    x_check = pd.DataFrame(data[batch_size:data.shape[0]].values)
-    x_check = np.array(x_check)
-
-    for i in range(x_check.shape[0]):
-        output_inputLayer = inputLayer.computeLayer(x_check[i])
-        output_hiddenLayer = hiddenLayer.computeLayer(output_inputLayer)
-        final = outputLayer.computeLayer(output_hiddenLayer)
-        print("Waited: ", y_check[i], " Get: ",  final)

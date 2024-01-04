@@ -6,6 +6,7 @@ import argparse
 from Sigmoid import Sigmoid
 from Softmax import Softmax
 from parsing import *
+from accuracy import *
 from Network import Network
 from plotting import plot_curve
 
@@ -48,6 +49,7 @@ def main(data_path: str):
     epoch_scaling = epoch / iteration
 
     historic_loss = np.zeros((int(epoch)+1, 3))
+    
     for j in range(iteration):
         x_train, y_train, x_valid, y_valid = init_data(data_x, data_y, batch_size)
         final = net.feedforward(x_train, True)
@@ -62,23 +64,10 @@ def main(data_path: str):
             print("epoch: {0}/{1} - training_loss: {2} - validation_loss: {3}".format(int(curr_idx), int(epoch), round(loss, 4), round(val_loss, 4)))
         
         net.backpropagation(y_train)
+
+    compute_accuracy(data_x, data_y, net, y_train)
+    
     # plot_curve(historic_loss[:, 0], historic_loss[:, 1], historic_loss[:, 2])
-
-
-    sum = 0
-    x_accurany, y_accuracy, x_valid, y_valid = init_data(data_x, data_y, data_x.shape[0])
-
-    final = net.feedforward(x_accurany, False)
-    for k in range(final.shape[0]):
-        # print("Waited: ", y_train[k], " Get: ",  final[k])
-        if y_accuracy[k] == 1:
-            sum += y_accuracy[k] - final[k][0]
-        else:
-            sum += final[k][0]
-    precision = sum / final.shape[0]
-    print("Accuracy: ", precision, " as ", (1 - precision) * 100, "%")
-
-
 
 if __name__ == "__main__":
     params = argparse.ArgumentParser()
