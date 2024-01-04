@@ -32,8 +32,8 @@ def main(data_path: str):
     except:
         print("Parsing error.") 
         exit(1)
-    # random.seed(75)
-    # np.random.seed(75)
+    random.seed(39)
+    np.random.seed(39)
     net = Network()
     net.addLayers(Sigmoid(node_per_layer, nb_feature, learning_rate))
     net.addLayers(Sigmoid(node_per_layer, node_per_layer, learning_rate))
@@ -49,7 +49,6 @@ def main(data_path: str):
     epoch_scaling = epoch / iteration
 
     historic_loss = np.zeros((int(epoch)+1, 3))
-    
     for j in range(iteration):
         x_train, y_train, x_valid, y_valid = init_data(data_x, data_y, batch_size)
         final = net.feedforward(x_train, True)
