@@ -3,6 +3,9 @@ import numpy as np
 from parsing import *
 
 class Softmax(Layer):
+    def set_name(self):
+        self.name = 'softmax'
+
     def backpropagation(self, y_train):
         one_hot_y_train = one_hot(y_train)
         delta = self.output - one_hot_y_train

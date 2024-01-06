@@ -2,6 +2,9 @@ from Layer import Layer
 import numpy as np
 
 class Sigmoid(Layer):
+    def set_name(self):
+        self.name = 'sigmoid'
+
     def backpropagation(self, above_delta):
         delta = above_delta * self.output * (1 - self.output) 
 

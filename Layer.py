@@ -6,10 +6,10 @@ class Layer:
     def __init__(self, nodes, input_len, learning_rate):
         self.bias = np.zeros(nodes)
         self.weights = np.random.rand(input_len, nodes) / np.sqrt(input_len)
-        # rng = np.random.default_rng()
         self.learning_rate = learning_rate
         self.input = None
         self.output = None
+        self.set_name()
 
     def feedforward(self, input, train):
     

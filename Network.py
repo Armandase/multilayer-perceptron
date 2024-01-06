@@ -1,4 +1,7 @@
 from Layer import Layer
+import yaml
+
+weight_path='save_model/model.yaml'
 
 class Network:
     def __init__(self):
@@ -25,3 +28,17 @@ class Network:
 
         for layer in reversed(self.layers):
             gradient = layer.backpropagation(gradient)
+
+    def save_weights(self):
+        data = {'network': []}
+        for layer in self.layers:
+            layer_data = {
+                'layer': layer.name,
+                'shape': [layer.weights.shape[0], layer.weights.shape[1]],
+                'weights': layer.weights.tolist(),
+            }
+            data['network'].append(layer_data)
+        
+        with open(weight_path, 'w', newline='') as file:
+            yaml.dump(data,file,sort_keys=False) 
+        print('Written to file successfully')

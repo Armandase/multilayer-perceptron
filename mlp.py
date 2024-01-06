@@ -66,7 +66,8 @@ def main(data_path: str):
 
     compute_accuracy(data_x, data_y, net, y_train)
     
-    # plot_curve(historic_loss[:, 0], historic_loss[:, 1], historic_loss[:, 2])
+    plot_curve(historic_loss[:, 0], historic_loss[:, 1], historic_loss[:, 2])
+    net.save_weights()
 
 if __name__ == "__main__":
     params = argparse.ArgumentParser()
