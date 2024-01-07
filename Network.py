@@ -42,6 +42,7 @@ class Network:
                 'name': layer.name,
                 'shape': [layer.weights.shape[0], layer.weights.shape[1]],
                 'weights': layer.weights.tolist(),
+                'bias': layer.bias.tolist(),
             }
             data['network'].append(layer_data)
 

@@ -1,4 +1,3 @@
-import sys
 import pandas as pd
 import numpy as np
 import argparse
@@ -6,7 +5,7 @@ import argparse
 from Sigmoid import Sigmoid
 from Softmax import Softmax
 from parsing import *
-from accuracy import *
+from math_func import *
 from Network import Network
 from plotting import plot_curve
 
@@ -15,15 +14,6 @@ batch_size = 50
 node_per_layer = 30
 learning_rate = 0.0025
 nb_feature = 30
-
-def binaryCrossEntropy(output, y_train):
-    n = y_train.shape[0]
-    
-    sum = 0
-    for i in range(n):
-        pred = output[i][0]
-        sum += y_train[i] * np.log(pred) + ((1 - y_train[i]) * np.log(1 - pred))
-    return sum  / n * -1
 
 def main(data_path: str):
 
@@ -45,10 +35,9 @@ def main(data_path: str):
     data_y = data_y[1].replace('M', 1).replace('B', 0)
 
     epoch = iteration / (int(data_x.shape[0] / batch_size) + 1)
-    #iteration = epoch * (int(data_x.shape[0] / batch_size) + 1)
-    print("epoch", epoch)
-    print("try", epoch * (int(data_x.shape[0] / batch_size) + 1))
-    exit()
+    # print("epoch", epoch)
+    # print("try", epoch * (int(data_x.shape[0] / batch_size) + 1))
+    # exit()
     epoch_itr = int(iteration / epoch)
     epoch_scaling = epoch / iteration
 
@@ -67,8 +56,6 @@ def main(data_path: str):
             print("epoch: {0}/{1} - training_loss: {2} - validation_loss: {3}".format(int(curr_idx), int(epoch), round(loss, 4), round(val_loss, 4)))
         
         net.backpropagation(y_train)
-
-    compute_accuracy(data_x, data_y, net, y_train)
     
     plot_curve(historic_loss[:, 0], historic_loss[:, 1], historic_loss[:, 2])
     net.save_weights()

@@ -3,13 +3,13 @@ import random
 from parsing import *
 
 class Layer:
-    def __init__(self, nodes=0, input_len=0, learning_rate=1, weights=None):
+    def __init__(self, nodes=0, input_len=0, learning_rate=1, weights=None, bias=None):
         if weights is None:
             self.bias = np.zeros(nodes)
             self.weights = np.random.rand(input_len, nodes) / np.sqrt(input_len)
         else:
             self.weights = weights
-            self.bias = weights.shape[1]
+            self.bias = bias
         self.learning_rate = learning_rate
         self.input = None
         self.output = None
