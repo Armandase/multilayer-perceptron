@@ -34,17 +34,21 @@ def main(data_path: str):
         exit(1)
     random.seed(39)
     np.random.seed(39)
-    net = Network()
-    net.addLayers(Sigmoid(node_per_layer, nb_feature, learning_rate))
-    net.addLayers(Sigmoid(node_per_layer, node_per_layer, learning_rate))
-    net.addLayers(Sigmoid(node_per_layer, node_per_layer, learning_rate))
-    net.addLayers(Softmax(2, node_per_layer, learning_rate))
+    net = Network(learning_rate)
+    net.addLayers(Sigmoid(node_per_layer, nb_feature))
+    net.addLayers(Sigmoid(node_per_layer, node_per_layer))
+    net.addLayers(Sigmoid(node_per_layer, node_per_layer))
+    net.addLayers(Softmax(2, node_per_layer))
 
     data_y = data.drop(0, axis=1)
     data_x = data_y.drop(1, axis=1)
     data_y = data_y[1].replace('M', 1).replace('B', 0)
 
     epoch = iteration / (int(data_x.shape[0] / batch_size) + 1)
+    #iteration = epoch * (int(data_x.shape[0] / batch_size) + 1)
+    print("epoch", epoch)
+    print("try", epoch * (int(data_x.shape[0] / batch_size) + 1))
+    exit()
     epoch_itr = int(iteration / epoch)
     epoch_scaling = epoch / iteration
 
