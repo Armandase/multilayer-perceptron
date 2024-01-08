@@ -62,6 +62,9 @@ class Network:
                         \ttraining accuracy: {4} - validation accuracy: {5}"
                     .format(int(curr_idx), int(self.epochs), round(loss, 4), round(val_loss, 4), round(accu, 4), round(val_accu, 4)))
             
+            if val_loss < EARLY_STOP:
+                break
+            
             self.backpropagation(y_train)
         return historic
 
