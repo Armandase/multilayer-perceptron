@@ -36,7 +36,7 @@ def predict(data_x, data_y):
         x_global, y_global = init_data(data_x, data_y, data_x.shape[0])[:2]
         y_pred = net.feedforward(x_global, False)
 
-        precision = accuracy(y_global, y_pred, net)
+        precision = accuracy(y_global, y_pred)
         print("Accuracy: ", precision, " as ", (1 - precision) * 100, "%")
         
         loss = binaryCrossEntropy(y_pred, y_global)

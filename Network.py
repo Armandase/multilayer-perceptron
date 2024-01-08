@@ -1,12 +1,18 @@
 import json
+import numpy as np
+import math
 
 from Layer import Layer
 from constants import *
+from parsing import *
+from math_func import *
 
 class Network:
-    def __init__(self, learning_rate):
+    def __init__(self, learning_rate, batch_size=BATCH_SIZE, epochs=EPOCHS):
         self.layers = list()
         self.learning_rate = learning_rate
+        self.batch_size = batch_size
+        self.epochs = epochs
 
     def addLayers(self, layer):
         if isinstance(layer, Layer) == False:
@@ -30,6 +36,34 @@ class Network:
 
         for layer in reversed(self.layers):
             gradient = layer.backpropagation(gradient)
+
+    def train_network(self, iteration, data_x, data_y):
+        epoch_itr = int(iteration / self.epochs)
+        epoch_scaling = self.epochs / iteration
+
+        historic = np.empty((math.ceil(self.epochs), 5))
+        for j in range(iteration):
+            x_train, y_train, x_valid, y_valid = init_data(data_x, data_y, self.batch_size)
+            final = self.feedforward(x_train, True)
+
+            if j % epoch_itr == 0:
+                loss = binaryCrossEntropy(final, y_train)
+                accu = accuracy(y_train, final)
+                
+                pred = self.feedforward(x_valid, False)
+                val_loss = binaryCrossEntropy(pred, y_valid)
+                val_accu = accuracy(y_valid, pred)
+                
+                curr_idx = j * epoch_scaling
+                historic[int(curr_idx)] = [int(curr_idx), loss, val_loss, accu, val_accu]
+                
+                print("epoch: {0}/{1}\n\
+                        \ttraining loss: {2} - validation loss: {3}\n\
+                        \ttraining accuracy: {4} - validation accuracy: {5}"
+                    .format(int(curr_idx), int(self.epochs), round(loss, 4), round(val_loss, 4), round(accu, 4), round(val_accu, 4)))
+            
+            self.backpropagation(y_train)
+        return historic
 
     def save_weights(self, batch_size=BATCH_SIZE, epoch=EPOCHS):
         data = {
