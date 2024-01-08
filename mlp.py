@@ -35,23 +35,30 @@ def main(data_path: str, epochs: int, batch_size: int, learning_rate: float):
     epoch_itr = int(iteration / epochs)
     epoch_scaling = epochs / iteration
 
-    historic_loss = np.empty((math.ceil(epochs), 3))
+    historic_loss = np.empty((math.ceil(epochs), 5))
     for j in range(iteration):
         x_train, y_train, x_valid, y_valid = init_data(data_x, data_y, batch_size)
         final = net.feedforward(x_train, True)
 
         if j % epoch_itr == 0:
             loss = binaryCrossEntropy(final, y_train)
+            accu = accuracy(y_train, final)
+            
             pred = net.feedforward(x_valid, False)
             val_loss = binaryCrossEntropy(pred, y_valid)
-            curr_idx = j * epoch_scaling
-            historic_loss[int(curr_idx)] = [int(curr_idx), loss, val_loss]
+            val_accu = accuracy(y_valid, pred)
             
-            print("epoch: {0}/{1} - training_loss: {2} - validation_loss: {3}".format(int(curr_idx), int(epochs), round(loss, 4), round(val_loss, 4)))
+            curr_idx = j * epoch_scaling
+            historic_loss[int(curr_idx)] = [int(curr_idx), loss, val_loss, accu, val_accu]
+            
+            print("epoch: {0}/{1}\n\
+                    \ttraining loss: {2} - validation loss: {3}\n\
+                    \ttraining accuracy: {4} - validation accuracy: {5}"
+                  .format(int(curr_idx), int(epochs), round(loss, 4), round(val_loss, 4), round(accu, 4), round(val_accu, 4)))
         
         net.backpropagation(y_train)
     
-    plot_curve(historic_loss[:, 0], historic_loss[:, 1], historic_loss[:, 2])
+    plot_curve(historic_loss[:, 0], historic_loss[:, 1], historic_loss[:, 2], historic_loss[:, 3], historic_loss[:, 4])
     net.save_weights()
 
 if __name__ == "__main__":

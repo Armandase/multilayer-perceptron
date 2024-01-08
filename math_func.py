@@ -2,7 +2,7 @@ import numpy as np
 
 from parsing import init_data
 
-def accuracy(y_accuracy, final, net):
+def accuracy(y_accuracy, final):
     #final[:, 0] same as final.T[0]
     diff = y_accuracy - final[:, 0]
     sum = np.sum(np.abs(diff))
