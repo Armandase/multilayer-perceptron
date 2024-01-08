@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import random
 
+from constants import *
+
 def one_hot(labels):
     """
     Converts categorical labels into one-hot encoded representation.
@@ -75,3 +77,32 @@ def init_data(data_x, data_y, batch_size):
     x_valid = data_x.iloc[remaining_indexes].values
     x_valid = normalize_data(np.array(x_valid))
     return x_train, y_train, x_valid, y_valid
+
+def handle_args(args):
+    data_path: str = None
+    epochs: float = None
+    batch_size: int = None
+    learning_rate: float = None
+
+    if args.data_path:
+        data_path = args.data_path
+    else:
+        data_path = DATA_PATH
+
+    if args.epochs:
+        epochs = float(args.epochs)
+    else:
+        epochs = EPOCHS
+
+    if args.batch_size:
+        batch_size = int(args.batch_size)
+    else:
+        batch_size = BATCH_SIZE
+
+    if args.learning_rate:
+        learning_rate = float(args.learning_rate)
+    else:
+        learning_rate = LEARNING_RATE
+
+    return data_path, epochs, batch_size, learning_rate
+    

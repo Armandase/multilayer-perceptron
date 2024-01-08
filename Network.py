@@ -1,7 +1,7 @@
-from Layer import Layer
 import json
 
-weight_path='save_model/model.json'
+from Layer import Layer
+from constants import *
 
 class Network:
     def __init__(self, learning_rate):
@@ -31,7 +31,7 @@ class Network:
         for layer in reversed(self.layers):
             gradient = layer.backpropagation(gradient)
 
-    def save_weights(self, batch_size=50, epoch=833):
+    def save_weights(self, batch_size=BATCH_SIZE, epoch=EPOCHS):
         data = {
             'learning_rate': self.learning_rate,
             'batch_size': batch_size,
@@ -49,7 +49,7 @@ class Network:
         json_data = json.dumps(data, indent=4)
  
         try:
-            with open(weight_path, 'w', newline='') as outfile:
+            with open(WEIGHT_PATH, 'w', newline='') as outfile:
                 outfile.write(json_data)
             print('Written to file successfully')
         except Exception as e:

@@ -9,25 +9,12 @@ from Network import Network
 from Sigmoid import Sigmoid
 from Softmax import Softmax
 from parsing import init_data
-
-weight_path='save_model/model.json'
-
-def main(data_path: str):
-    try:
-        data = pd.read_csv(data_path, header=None)
-        data_y = data.drop(0, axis=1)
-        data_x = data_y.drop(1, axis=1)
-        data_y = data_y[1].replace('M', 1).replace('B', 0)
-        
-        predict(data_x, data_y)
-    except Exception as e:
-        print("An error occurred:", str(e))
-        exit(1)
+from constants import *
 
 def predict(data_x, data_y):
-    with open(weight_path, 'r', newline='') as infile:
-        random.seed(39)
-        np.random.seed(39)
+    with open(WEIGHT_PATH, 'r', newline='') as infile:
+        random.seed(SEED)
+        np.random.seed(SEED)
         model = json.loads(infile.read())
 
         # epoch = model['epoch']
@@ -46,7 +33,7 @@ def predict(data_x, data_y):
             else:
                 raise Exception("Wrong layer name")
 
-        x_global, y_global = init_data(data_x, data_y, data_x.shape[0])[:2  ]
+        x_global, y_global = init_data(data_x, data_y, data_x.shape[0])[:2]
         y_pred = net.feedforward(x_global, False)
 
         precision = accuracy(y_global, y_pred, net)
@@ -54,6 +41,18 @@ def predict(data_x, data_y):
         
         loss = binaryCrossEntropy(y_pred, y_global)
         print("Loss global: ", loss)
+
+def main(data_path: str):
+    try:
+        data = pd.read_csv(data_path, header=None)
+        data_y = data.drop(0, axis=1)
+        data_x = data_y.drop(1, axis=1)
+        data_y = data_y[1].replace('M', 1).replace('B', 0)
+        
+        predict(data_x, data_y)
+    except Exception as e:
+        print("An error occurred:", str(e))
+        exit(1)
 
 if __name__ == "__main__":
     params = argparse.ArgumentParser()
