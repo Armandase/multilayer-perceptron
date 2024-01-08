@@ -2,10 +2,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import interp1d
 
-def plot_curve(epoch, loss, val_loss, accu, val_accu):
+def plot_curve(historic):
+    epoch = historic[:, 0]
+    accu = historic[:, 1]
+    val_accu = historic[:, 2]
+    loss_entropy = historic[:, 3]
+    val_loss_entropy = historic[:, 4]
+    loss_mse = historic[:, 5]
+    val_loss_mse = historic[:, 6]
+
     plt.subplot(2, 1, 1)  # 2 rows, 1 column, first subplot
-    plt.plot(epoch, loss, label='Loss')
-    plt.plot(epoch, val_loss, label='Validation loss')
+    plt.plot(epoch, loss_entropy, label='Loss entropy')
+    plt.plot(epoch, loss_mse, label='Loss mse')
+    plt.plot(epoch, val_loss_entropy, label='Validation loss entropy')
+    plt.plot(epoch, val_loss_mse, label='Validation loss mse')
 
     plt.title('Loss over epoch')
     plt.xlabel('epoch')

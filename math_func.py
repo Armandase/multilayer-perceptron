@@ -13,8 +13,12 @@ def accuracy(y_accuracy, final):
 def binaryCrossEntropy(y_pred, y_train):
     n = y_train.shape[0]
     
-    sum = 0
-    for i in range(n):
-        pred = y_pred[i][0]
-        sum += y_train[i] * np.log(pred) + ((1 - y_train[i]) * np.log(1 - pred))
+    sum = np.sum(y_train * np.log(y_pred[:, 0]) + ((1 - y_train) * np.log(1 - y_pred[:, 0])))
     return sum  / n * -1
+
+def meanSquareError(y_pred, y_train):
+    n = y_train.shape[0]
+    
+    diff = y_train - y_pred[:, 0]
+    sum = np.sum(diff ** 2)
+    return sum  / n

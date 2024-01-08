@@ -41,26 +41,28 @@ class Network:
         epoch_itr = int(iteration / self.epochs)
         epoch_scaling = self.epochs / iteration
 
-        historic = np.empty((math.ceil(self.epochs), 5))
+        historic = np.empty((math.ceil(self.epochs), 7))
         for j in range(iteration):
             x_train, y_train, x_valid, y_valid = init_data(data_x, data_y, self.batch_size)
             final = self.feedforward(x_train, True)
 
             if j % epoch_itr == 0:
-                loss = binaryCrossEntropy(final, y_train)
+                loss_entropy = binaryCrossEntropy(final, y_train)
+                loss_mse = meanSquareError(final, y_train)
                 accu = accuracy(y_train, final)
                 
                 pred = self.feedforward(x_valid, False)
-                val_loss = binaryCrossEntropy(pred, y_valid)
+                val_loss_entropy = binaryCrossEntropy(pred, y_valid)
+                val_loss_mse = meanSquareError(pred, y_valid)
                 val_accu = accuracy(y_valid, pred)
                 
                 curr_idx = j * epoch_scaling
-                historic[int(curr_idx)] = [int(curr_idx), loss, val_loss, accu, val_accu]
+                historic[int(curr_idx)] = [int(curr_idx), accu, val_accu, loss_entropy, val_loss_entropy, loss_mse, val_loss_mse]
                 
                 print("epoch: {0}/{1}\n\
-                        \ttraining loss: {2} - validation loss: {3}\n\
+                        \ttraining loss entropy: {2} - validation loss entropy: {3}\n\
                         \ttraining accuracy: {4} - validation accuracy: {5}"
-                    .format(int(curr_idx), int(self.epochs), round(loss, 4), round(val_loss, 4), round(accu, 4), round(val_accu, 4)))
+                    .format(int(curr_idx), int(self.epochs), round(loss_entropy, 4), round(val_loss_entropy, 4), round(accu, 4), round(val_accu, 4)))
             
             self.backpropagation(y_train)
         return historic
