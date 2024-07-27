@@ -2,32 +2,17 @@ import numpy as np
 import pandas as pd
 import random
 
-from constants import *
+import logging
+import os
+
 
 def one_hot(labels):
-    """
-    Converts categorical labels into one-hot encoded representation.
-
-    Parameters:
-    - labels (numpy array): 1-dimensional array containing categorical labels.
-
-    Returns:
-    - numpy array: 2-dimensional array representing the one-hot encoded labels.
-
-    Example:
-    >>> labels = np.array([0, 1, 1, 0])
-    >>> one_hot(labels)
-    array([[1, 0],
-           [0, 1],
-           [0, 1],
-           [1, 0]])
-    """
-    one_hot = np.zeros((labels.size, labels.max() + 1))
     n_values = np.max(labels) + 1
-    one_hot = np.eye(n_values)[labels]
+    one_hot_encoding = np.eye(n_values)[labels]
 
-    one_hot = np.where(one_hot == 1, 0, 1)
-    return one_hot
+    one_hot_encoding = np.where(one_hot_encoding == 1, 0, 1)
+    return one_hot_encoding
+
 
 def normalize_data(dataset):
     """
@@ -44,7 +29,8 @@ def normalize_data(dataset):
     max_list = np.max(dataset, axis=0)
     dataset = (dataset - min_list) / (max_list - min_list)
     return dataset
-    
+
+
 def init_data(data_x, data_y, batch_size):
     """
     Randomize and normalize training and validation datasets
@@ -78,31 +64,45 @@ def init_data(data_x, data_y, batch_size):
     x_valid = normalize_data(np.array(x_valid))
     return x_train, y_train, x_valid, y_valid
 
-def handle_args(args):
-    data_path: str = None
-    epochs: float = None
-    batch_size: int = None
-    learning_rate: float = None
-
-    if args.data_path:
-        data_path = args.data_path
-    else:
-        data_path = DATA_PATH
-
-    if args.epochs:
-        epochs = float(args.epochs)
-    else:
-        epochs = EPOCHS
-
-    if args.batch_size:
-        batch_size = int(args.batch_size)
-    else:
-        batch_size = BATCH_SIZE
-
-    if args.learning_rate:
-        learning_rate = float(args.learning_rate)
-    else:
-        learning_rate = LEARNING_RATE
-
-    return data_path, epochs, batch_size, learning_rate
+def get_batches(data_x, data_y, batch_size):
+    if len(data_x) != len(data_y):
+        logging.error("Data and labels have different lengths")
+        exit(1)
     
+    batches_x = []
+    batches_y = []
+    for i in range(0, len(data_x), batch_size):
+        batches_x.append(data_x[i:i+batch_size])
+        batches_y.append(data_y[i:i + batch_size].astype(int))
+
+    return batches_x, batches_y
+
+def preprocessing(preprocessing_config={}, verbose=False):
+    data_path = preprocessing_config['data_path']
+    seed = preprocessing_config['seed']
+    header = preprocessing_config['header']
+
+    if data_path is None or os.path.exists(data_path) is False:
+        logging.error(f"Invalid or missing data file: {data_path}")
+        exit(1)
+
+    with open(data_path, 'r') as data_file:
+        data = pd.read_csv(data_file, header=None)
+        data.columns = header
+        if seed != -1:
+            logging.info(f"Seed set to {seed}")
+            data = data.sample(frac=1, random_state=seed).reset_index(drop=True)
+        else:
+            logging.info("Seed not set. Randomizing data.")
+            data = data.sample(frac=1).reset_index(drop=True)
+        data_x = data.iloc[:, 2:].values
+        data_y = data.iloc[:, 1].values
+        data_y[data_y == 'M'] = 1
+        data_y[data_y == 'B'] = 0
+    
+    if verbose:
+        logging.info(f"Data loaded from {data_path}")
+        print(data.describe())
+
+    data_x = normalize_data(data_x)
+    return data_x, data_y

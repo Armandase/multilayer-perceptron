@@ -1,9 +1,9 @@
 from Layer import Layer
 import numpy as np
 
-class Sigmoid(Layer):
+class Relu(Layer):
     def set_name(self):
-        self.name = 'sigmoid'
+        self.name = 'relu'
 
     def backpropagation(self, above_delta):
 
@@ -11,11 +11,12 @@ class Sigmoid(Layer):
 
         self.delta = delta
 
-        res = np.dot(delta, self.weights.T)
+        res = np.dot(above_delta, self.weights.T)
         return res
     
     def activation_function(self, Z):
-        return 1 / (1 + np.exp(-Z))
+        return np.maximum(0, Z)
     
     def derivative_activation_function(self, Z):
-        return self.activation_function(Z) * (1 - self.activation_function(Z))
+        return np.where(Z > 0, 1, 0)
+    

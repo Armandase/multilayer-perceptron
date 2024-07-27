@@ -1,0 +1,31 @@
+preprocessing:
+  data_path: 'data.csv' # Path of the dataset
+  shuffle: true # Shuffling the data
+  seed: -1 # seed uses with 'random' package (-1 for disable it)
+  train_prop: 0.8 # Proportion of the dataset used for training
+  valid_prop: 0.2 # Proportion of the dataset used for validation
+
+  header: ['id', 'diagnosis', 'radius_mean', 'texture_mean', 'perimeter_mean',
+    'area_mean', 'smoothness_mean', 'compactness_mean', 'concavity_mean',
+    'concave points_mean', 'symmetry_mean', 'fractal_dimension_mean',
+    'radius_se', 'texture_se', 'perimeter_se', 'area_se', 'smoothness_se',
+    'compactness_se', 'concavity_se', 'concave points_se', 'symmetry_se',
+    'fractal_dimension_se', 'radius_worst', 'texture_worst',
+    'perimeter_worst', 'area_worst', 'smoothness_worst',
+    'compactness_worst', 'concavity_worst', 'concave points_worst',
+    'symmetry_worst', 'fractal_dimension_worst']
+model:
+  intput_len: 30
+  weight_path: 'save_model/model.json'
+  epochs: 1000
+  batch_size: 64
+  learning_rate: 0.01
+  node_per_layer: 32
+  nb_output: 2
+  early_stop: 0.05
+
+  fc1: 32
+  fc2: 32
+  fc3: 32
+
+verbose: true
