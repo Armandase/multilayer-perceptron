@@ -15,8 +15,6 @@ class Sigmoid(Layer):
         return res_delta
     
     def activation_function(self, Z):
-        #prevent overflows by clipping
-        Z = np.clip(Z, -1000, 1000)
         return 1 / (1 + np.exp(-Z))
     
     def derivative_activation_function(self, Z):

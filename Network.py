@@ -13,6 +13,15 @@ def init_table(current_epoch, epochs):
     table.field_names = ["Set used", "Binary Cross Entropy", "Mean Square Entropy", "Accuracy"] 
     return table
 
+def update_historic(historic, epoch, accu, val_accu, loss_entropy, val_loss_entropy, loss_mse, val_loss_mse):
+    historic["epoch"] = epoch
+    historic["accu"].append(accu)
+    historic["val_accu"].append(val_accu)
+    historic["loss_entropy"].append(loss_entropy)
+    historic["val_loss_entropy"].append(val_loss_entropy)
+    historic["loss_mse"].append(loss_mse)
+    historic["val_loss_mse"].append(val_loss_mse)
+
 class Network:
     def __init__(self):
         self.layers = []
@@ -53,14 +62,18 @@ class Network:
         self.early_stopping = early_stopping
         self.learning_rate = learning_rate
         train_x, train_y, valid_x, valid_y = split_data(data_x, data_y, train_prop, test_prop)
+
+        historic = {
+            "epoch": 0, "accu": [], "val_accu": [], "loss_entropy": [], "val_loss_entropy": [], "loss_mse": [], "val_loss_mse": []
+        }
         for epoch in range(epochs):
             table = init_table(epoch, epochs)
             batches_x, batches_y = get_batches(train_x, train_y, batch_size)
-            prev_val_BCE = np.inf            
+            prev_val_loss_entropy = np.inf            
 
             avg_accu = 0
-            avg_BCE = 0
-            avg_MSE = 0
+            avg_loss_entropy = 0
+            avg_mse = 0
             nb_batches = len(batches_x)
             for x, y in zip(batches_x, batches_y):
                 y_one_hot = np.zeros((y.size, y.max()+1))
@@ -70,29 +83,32 @@ class Network:
                 output = self.feedforward(x, True)
                 zob = np.array(output, copy=True)
                 
-                avg_BCE += binary_cross_entropy(y, output)
-                avg_MSE += meanSquareError(output, y)
+                avg_loss_entropy += binary_cross_entropy(y, output)
+                avg_mse += meanSquareError(output, y)
                 avg_accu += accuracy(a, zob)
                 self.backpropagation(y)
                 
-            table.add_row(["Training", round(avg_BCE / nb_batches, 4), round(avg_MSE / nb_batches, 4), round(avg_accu / nb_batches, 4)])
+            loss_entropy = avg_loss_entropy / nb_batches
+            loss_mse = avg_mse / nb_batches
+            accu = avg_accu / nb_batches
+            table.add_row(["Training", round(loss_entropy, 4), round(loss_mse, 4), round(accu, 4)])
 
             pred = self.feedforward(valid_x, False)
-            val_BCE = binary_cross_entropy(valid_y, pred)
-            val_MSE = meanSquareError(pred, valid_y)
+            val_loss_entropy = binary_cross_entropy(valid_y, pred)
+            val_loss_mse = meanSquareError(pred, valid_y)
             val_accu = accuracy(valid_y, pred)
 
-            table.add_row(["Validation", round(val_BCE, 4), round(val_MSE, 4), round(val_accu, 4)])
+            table.add_row(["Validation", round(val_loss_entropy, 4), round(val_loss_mse, 4), round(val_accu, 4)])
             print(table)
             
-            # curr_idx = j * epoch_scaling
-            # historic[int(curr_idx)] = [int(curr_idx), accu, val_accu, loss_entropy, val_loss_entropy, loss_mse, val_loss_mse]
+            update_historic(historic, epoch, accu, val_accu, loss_entropy, val_loss_entropy, loss_mse, val_loss_mse)
+            # historic[epoch] = [epoch, accu, val_accu, loss_entropy, val_loss_entropy, loss_mse, val_loss_mse]
             
-            if np.abs(prev_val_BCE - val_BCE) < self.early_stopping:
+            if np.abs(prev_val_loss_entropy - val_loss_entropy) < self.early_stopping:
                 break
-            prev_val_BCE = val_BCE
+            prev_val_loss_entropy = val_loss_entropy
             
-        return 
+        return historic 
 
     # def save_weights(self, batch_size=BATCH_SIZE, epoch=EPOCHS):
     #     data = {

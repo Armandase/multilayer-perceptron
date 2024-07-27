@@ -51,9 +51,9 @@ def main(config_path: str):
     train_prop = config_model['train_prop']
     test_prop = config_model['test_prop']
 
-    model.fit(data_x, data_y, batch_size, epochs, learning_rate, train_prop, test_prop, verbose)
+    historic = model.fit(data_x, data_y, batch_size, epochs, learning_rate, train_prop, test_prop, verbose)
 
-    # plot_curve(historic)
+    plot_curve(historic)
     # net.save_weights()
 
 
