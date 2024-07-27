@@ -1,9 +1,10 @@
 import numpy as np
 import random
 from parsing import *
+from abc import ABC, abstractmethod
 
 
-class Layer:
+class Layer(ABC):
     def __init__(self, input_len=0, output_len=0, learning_rate=0.01, weights=None, bias=None):
         if weights and bias:
             self.weights = weights
@@ -14,8 +15,24 @@ class Layer:
         self.learning_rate = learning_rate
         self.input = None
         self.output = None
-        self.delta = None
-        self.set_name()
+        self.weights_grad = None
+        self.bias_grad = None
+    
+    @abstractmethod
+    def set_name(self):
+        pass
+
+    @abstractmethod
+    def activation_function(self, Z):
+        pass
+
+    @abstractmethod
+    def derivative_activation_function(self, Z):
+        pass
+
+    @abstractmethod
+    def backpropagation(self):
+        pass
 
     def feedforward(self, input, train):
         weighted_sums = np.dot(input, self.weights) + self.bias
@@ -27,10 +44,5 @@ class Layer:
         return output
     
     def upate_weights(self):
-        # delta_weights = np.dot(self.input.T, self.delta) * self.learning_rate
-        delta_weights = np.dot(self.input.T, self.delta)
-
-        self.weights = self.weights - delta_weights * self.learning_rate
-
-        delta_bias = np.sum(self.delta, axis=0)
-        self.bias = self.bias - delta_bias * self.learning_rate
+        self.weights -= self.learning_rate * self.weights_grad
+        self.bias -= self.learning_rate * self.bias_grad

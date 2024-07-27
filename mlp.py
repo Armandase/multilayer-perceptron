@@ -48,8 +48,10 @@ def main(config_path: str):
     batch_size = config_model['batch_size']
     epochs = config_model['epochs']
     learning_rate = config_model['learning_rate']
+    train_prop = config_model['train_prop']
+    test_prop = config_model['test_prop']
 
-    model.fit(batch_size, epochs, learning_rate, data_x, data_y)
+    model.fit(data_x, data_y, batch_size, epochs, learning_rate, train_prop, test_prop, verbose)
 
     # plot_curve(historic)
     # net.save_weights()

@@ -1,10 +1,17 @@
 import json
 import numpy as np
 import math
+import prettytable
 
 from Layer import Layer
 from parsing import *
 from math_func import *
+
+def init_table(current_epoch, epochs):
+    table = prettytable.PrettyTable()
+    table.title = f"Epochs {current_epoch + 1}/{epochs}"
+    table.field_names = ["Set used", "Binary Cross Entropy", "Mean Square Entropy", "Accuracy"] 
+    return table
 
 class Network:
     def __init__(self):
@@ -28,49 +35,33 @@ class Network:
             output = layer.feedforward(output, train)
         return output
 
-    # def backpropagation(self, y_train):
-    #     gradient = y_train
-    #     for layer in reversed(self.layers):
-    #         gradient = layer.backpropagation(gradient)
-
-    #     for layer in self.layers:
-    #         layer.upate_weights()        
+    def update_model(self):
+        for layer in self.layers:
+            layer.upate_weights()
 
     def backpropagation(self, y_train):
-        pred = self.layers[-1].output
-        error = pred
-        error[np.arange(len(pred)), y_train.astype(np.int64) ] -= 1
-        error /= len(pred)
-        # print('error shape:', error.shape)
-        gradients = []
+        gradient = y_train
+        for layer in reversed(self.layers):
+            gradient = layer.backpropagation(gradient)
 
-        # Iterate over each layer in reverse order
-        for i in range(len(self.layers) - 1, -1, -1):
-            # Compute the gradients of the loss with respect to the weights and biases
-            gradients.append([np.dot(self.layers[i].input.T, error)])
-            gradients[-1].append(np.mean(error, axis=0))
-            
-            # Compute the error of the current layer
-            if i >= 1:  # avoid index error
-                error = np.dot(error, self.layers[i].weights.T)
-                error *= self.layers[i - 1].derivative_activation_function(self.layers[i].input)
-        # exit()
-        # Reverse the list of gradients to match the order of the layers
-        gradients.reverse()
+        for layer in self.layers:
+            layer.upate_weights()        
 
-        self.gradients = gradients
-        for i in range(len(self.layers)):
-            # Update the weights and biases of the current layer
-            # print(i, ' with', self.layers[i].weights.shape, ' * ', self.gradients[i][0].shape)
-            self.layers[i].weights -= self.learning_rate * self.gradients[i][0]
-            self.layers[i].bias -= self.learning_rate * self.gradients[i][1]
-        # exit()
-
-    def fit(self, batch_size, epochs, learning_rate, data_x, data_y):
+    def fit(self, data_x=None, data_y=None, 
+            batch_size=64, epochs=1000, learning_rate=0.01, 
+            train_prop=0.8, test_prop=0.2, verbose=False, early_stopping=0.0001):
+        self.early_stopping = early_stopping
         self.learning_rate = learning_rate
+        train_x, train_y, valid_x, valid_y = split_data(data_x, data_y, train_prop, test_prop)
         for epoch in range(epochs):
-            batches_x, batches_y = get_batches(data_x, data_y, batch_size)
+            table = init_table(epoch, epochs)
+            batches_x, batches_y = get_batches(train_x, train_y, batch_size)
+            prev_val_BCE = np.inf            
 
+            avg_accu = 0
+            avg_BCE = 0
+            avg_MSE = 0
+            nb_batches = len(batches_x)
             for x, y in zip(batches_x, batches_y):
                 y_one_hot = np.zeros((y.size, y.max()+1))
                 y_one_hot[np.arange(y.size), y] = 1
@@ -79,33 +70,28 @@ class Network:
                 output = self.feedforward(x, True)
                 zob = np.array(output, copy=True)
                 
-                loss_entropy = binary_cross_entropy(y, output)
+                avg_BCE += binary_cross_entropy(y, output)
+                avg_MSE += meanSquareError(output, y)
+                avg_accu += accuracy(a, zob)
                 self.backpropagation(y)
-                # loss_entropy = binaryCrossEntropy(output, y)
-                # loss_mse = meanSquareError(output, y)
-                accu = accuracy(a, zob)
-            print("epoch: {0}/{1}\n\
-                    \ttraining loss entropy: {2}\n\
-                    \ttraining accuracy: {3}"
-                .format(epoch, epochs, round(loss_entropy, 4), round(accu, 4)))
                 
-            # pred = self.feedforward(x_valid, False)
-            # val_loss_entropy = binaryCrossEntropy(pred, y_valid)
-            # val_loss_mse = meanSquareError(pred, y_valid)
-            # val_accu = accuracy(y_valid, pred)
+            table.add_row(["Training", round(avg_BCE / nb_batches, 4), round(avg_MSE / nb_batches, 4), round(avg_accu / nb_batches, 4)])
+
+            pred = self.feedforward(valid_x, False)
+            val_BCE = binary_cross_entropy(valid_y, pred)
+            val_MSE = meanSquareError(pred, valid_y)
+            val_accu = accuracy(valid_y, pred)
+
+            table.add_row(["Validation", round(val_BCE, 4), round(val_MSE, 4), round(val_accu, 4)])
+            print(table)
             
             # curr_idx = j * epoch_scaling
             # historic[int(curr_idx)] = [int(curr_idx), accu, val_accu, loss_entropy, val_loss_entropy, loss_mse, val_loss_mse]
             
-            # print("epoch: {0}/{1}\n\
-            #         \ttraining loss entropy: {2} - validation loss entropy: {3}\n\
-            #         \ttraining accuracy: {4} - validation accuracy: {5}"
-            #     .format(int(curr_idx), int(self.epochs), round(loss_entropy, 4), round(val_loss_entropy, 4), round(accu, 4), round(val_accu, 4)))
-        
-            # if val_loss_entropy < EARLY_STOP:
-            #     break
+            if np.abs(prev_val_BCE - val_BCE) < self.early_stopping:
+                break
+            prev_val_BCE = val_BCE
             
-            # self.backpropagation(y_train)
         return 
 
     # def save_weights(self, batch_size=BATCH_SIZE, epoch=EPOCHS):

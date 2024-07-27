@@ -13,60 +13,43 @@ def one_hot(labels):
     one_hot_encoding = np.where(one_hot_encoding == 1, 0, 1)
     return one_hot_encoding
 
+def split_data(data_x, data_y, train_prop, test_prop):
+    if len(data_x) != len(data_y):
+        logging.error("Data and labels have different lengths")
+        exit(1)
+    elif train_prop + test_prop != 1:
+        logging.error("Invalid train and test proportions")
+        exit(1)
+
+    train_size = int(len(data_x) * train_prop)
+    valid_size = int(len(data_x) * test_prop)
+
+    # shuffle data
+    indices = np.arange(len(data_x))
+    np.random.shuffle(indices)
+    data_x = data_x[indices]
+    data_y = data_y[indices]
+
+    train_x = data_x[:train_size]
+    train_y = data_y[:train_size]
+    valid_x = data_x[train_size:train_size + valid_size]
+    valid_y = data_y[train_size:train_size + valid_size]
+
+    return train_x, train_y, valid_x, valid_y
 
 def normalize_data(dataset):
-    """
-    Normalizes the input dataset by scaling each feature to a range of [0, 1].
-    0 represents the minimum value and 1 the maximum.
-
-    Parameters:
-    - dataset (numpy.ndarray): The input dataset with numerical values.
-
-    Returns:
-    - numpy.ndarray: The normalized dataset with values scaled to the range [0, 1].
-    """
     min_list = np.min(dataset, axis=0)
     max_list = np.max(dataset, axis=0)
     dataset = (dataset - min_list) / (max_list - min_list)
     return dataset
 
 
-def init_data(data_x, data_y, batch_size):
-    """
-    Randomize and normalize training and validation datasets
-
-    Parameters:
-    - data_x (pd.DataFrame): The input features dataset.
-    - data_y (np.array): The corresponding labels array.
-    - batch_size (int): The size of the training batch.
-
-    Returns:
-    - x_train : Normalized training input features (len of batch_size).
-    - y_train : Training labels corresponding to x_train (len of batch_size).
-    - x_valid : Normalized validation input features (len of data_x sub batch_size).
-    - y_valid : Validation labels corresponding to x_valid (len of data_x sub batch_size).
-
-    The function randomly selects 'batch_size' samples for training from data_x,
-    and uses the remaining samples for validation. It normalizes the input features
-    using the mini-max normalization before returning the datasets.
-    """
-
-    indexes = np.random.randint(0, data_x.shape[0], batch_size)
-    remaining_indexes = np.setdiff1d(np.arange(data_x.shape[0]), indexes)
-
-    y_train = np.array(data_y[indexes])
-    x_train = data_x.iloc[indexes].values
-    x_train = normalize_data(np.array(x_train))
-
-    y_valid = np.array(data_y[remaining_indexes])
-
-    x_valid = data_x.iloc[remaining_indexes].values
-    x_valid = normalize_data(np.array(x_valid))
-    return x_train, y_train, x_valid, y_valid
-
 def get_batches(data_x, data_y, batch_size):
     if len(data_x) != len(data_y):
         logging.error("Data and labels have different lengths")
+        exit(1)
+    elif batch_size <= 0 or batch_size > len(data_x):
+        logging.error("Invalid batch size")
         exit(1)
     
     batches_x = []
