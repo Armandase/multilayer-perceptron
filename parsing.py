@@ -7,11 +7,10 @@ import os
 
 
 def one_hot(labels):
-    n_values = np.max(labels) + 1
-    one_hot_encoding = np.eye(n_values)[labels]
-
-    one_hot_encoding = np.where(one_hot_encoding == 1, 0, 1)
-    return one_hot_encoding
+    labels = labels.astype(int)
+    y_one_hot = np.zeros((labels.size, labels.max()+1))
+    y_one_hot[np.arange(labels.size), labels] = 1
+    return y_one_hot
 
 def split_data(data_x, data_y, train_prop, test_prop):
     if len(data_x) != len(data_y):

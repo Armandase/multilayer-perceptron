@@ -10,7 +10,7 @@ from math_func import *
 def init_table(current_epoch, epochs):
     table = prettytable.PrettyTable()
     table.title = f"Epochs {current_epoch + 1}/{epochs}"
-    table.field_names = ["Set used", "Binary Cross Entropy", "Mean Square Entropy", "Accuracy"] 
+    table.field_names = ["Set used", "Binary Cross Entropy", "Subject Entropy", "Mean Square Entropy", "Accuracy"] 
     return table
 
 def update_historic(historic, epoch, accu, val_accu, loss_entropy, val_loss_entropy, loss_mse, val_loss_mse):
@@ -74,6 +74,7 @@ class Network:
             avg_accu = 0
             avg_loss_entropy = 0
             avg_mse = 0
+            avg_subject_entropy = 0
             nb_batches = len(batches_x)
             for x, y in zip(batches_x, batches_y):
                 y_one_hot = np.zeros((y.size, y.max()+1))
@@ -86,23 +87,25 @@ class Network:
                 avg_loss_entropy += binary_cross_entropy(y, output)
                 avg_mse += meanSquareError(output, y)
                 avg_accu += accuracy(a, zob)
+                avg_subject_entropy += subject_binary_cross_entropy(y_one_hot, output)
                 self.backpropagation(y)
                 
             loss_entropy = avg_loss_entropy / nb_batches
+            loss_subject_entropy = avg_subject_entropy / nb_batches
             loss_mse = avg_mse / nb_batches
             accu = avg_accu / nb_batches
-            table.add_row(["Training", round(loss_entropy, 4), round(loss_mse, 4), round(accu, 4)])
+            table.add_row(["Training", round(loss_entropy, 4), round(loss_subject_entropy, 4), round(loss_mse, 4), round(accu, 4)])
 
             pred = self.feedforward(valid_x, False)
             val_loss_entropy = binary_cross_entropy(valid_y, pred)
+            val_loss_subject_entropy = subject_binary_cross_entropy(one_hot(valid_y), pred)
             val_loss_mse = meanSquareError(pred, valid_y)
             val_accu = accuracy(valid_y, pred)
 
-            table.add_row(["Validation", round(val_loss_entropy, 4), round(val_loss_mse, 4), round(val_accu, 4)])
+            table.add_row(["Validation", round(val_loss_entropy, 4), round(val_loss_subject_entropy, 4), round(val_loss_mse, 4), round(val_accu, 4)])
             print(table)
             
             update_historic(historic, epoch, accu, val_accu, loss_entropy, val_loss_entropy, loss_mse, val_loss_mse)
-            # historic[epoch] = [epoch, accu, val_accu, loss_entropy, val_loss_entropy, loss_mse, val_loss_mse]
             
             if np.abs(prev_val_loss_entropy - val_loss_entropy) < self.early_stopping:
                 break

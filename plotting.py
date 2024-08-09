@@ -32,7 +32,7 @@ def plot_curve(historic):
     plt.legend()
 
     # Create the third subplot for the accuracy at the bottom
-    plt.subplot(3, 1, 3)  # 3 rows, 1 column, third subplot
+    plt.subplot(3, 1, 3)  # 3    rows, 1 column, third subplot
     plt.plot(epochs, accu, label='Accuracy')
     plt.plot(epochs, val_accu, label='Validation accuracy')
 

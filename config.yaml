@@ -1,5 +1,8 @@
 preprocessing:
+  #data_path: 'correction/data_training.csv' # Path of the dataset
   data_path: 'data.csv' # Path of the dataset
+  data_train_path: None # Path of the train dataset
+  data_test_path: None # Path of the test dataset
   shuffle: true # Shuffling the data
   seed: -1 # seed uses with 'random' package (-1 for disable it)
 
@@ -20,8 +23,8 @@ model:
   learning_rate: 0.01
   node_per_layer: 32
   nb_output: 2
-  train_prop: 0.8 # Proportion of the dataset used for training
-  test_prop: 0.2 # Proportion of the dataset used for validation
+  train_prop: 0.9 # Proportion of the dataset used for training
+  test_prop: 0.1 # Proportion of the dataset used for validation
   early_stop: 0.05
 
   fc1: 32
