@@ -1,10 +1,18 @@
 preprocessing:
   #data_path: 'correction/data_training.csv' # Path of the dataset
   data_path: 'data.csv' # Path of the dataset
-  data_train_path: None # Path of the train dataset
-  data_test_path: None # Path of the test dataset
+  #data_train_path: 'datasets/train_dataset.csv' # Path of the train dataset
+  #data_test_path: 'datasets/test_dataset.csv' # Path of the test dataset
+  
+  data_train_path: 'correction/data_train.csv' # Path of the train dataset
+  data_test_path: 'correction/data_test.csv' # Path of the test dataset
+  force_dataset_creation: false # Force the creation of the dataset
+  path_save_data: '/home/armand/42/mlp_update/datasets/' # Path to save the dataset
+
   shuffle: true # Shuffling the data
   seed: -1 # seed uses with 'random' package (-1 for disable it)
+  train_prop: 0.9 # Proportion of the dataset used for training
+  test_prop: 0.1 # Proportion of the dataset used for validation
 
   header: ['id', 'diagnosis', 'radius_mean', 'texture_mean', 'perimeter_mean',
     'area_mean', 'smoothness_mean', 'compactness_mean', 'concavity_mean',
@@ -15,20 +23,24 @@ preprocessing:
     'perimeter_worst', 'area_worst', 'smoothness_worst',
     'compactness_worst', 'concavity_worst', 'concave points_worst',
     'symmetry_worst', 'fractal_dimension_worst']
+
 model:
   intput_len: 30
-  weight_path: 'save_model/model.json'
+  model_path: 'save_model/model.json'
   epochs: 1000
   batch_size: 64
   learning_rate: 0.01
   node_per_layer: 32
   nb_output: 2
-  train_prop: 0.9 # Proportion of the dataset used for training
-  test_prop: 0.1 # Proportion of the dataset used for validation
   early_stop: 0.05
 
   fc1: 32
   fc2: 32
   fc3: 32
 
-verbose: true
+predict:
+  data_path: 'correction/data_test.csv' # Path of the dataset
+  model_path: 'save_model/model.json'
+  seed: -1
+
+verbose: True

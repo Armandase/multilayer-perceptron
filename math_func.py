@@ -14,7 +14,9 @@ def binary_cross_entropy(y_true, y_pred):
 def subject_binary_cross_entropy(y_true, y_pred):
     n = y_true.shape[0]
     
-    sum = np.sum(y_true * np.log(y_pred) + (1 - y_true) * np.clip(np.log(1 - y_pred),  1e-15, 1e15))
+    epsilon = 1e-15
+    y_pred = np.clip(y_pred, epsilon, 1 - epsilon)
+    sum = np.sum(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
     return -sum / n
 
 def meanSquareError(y_pred, y_train):

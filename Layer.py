@@ -6,8 +6,9 @@ from abc import ABC, abstractmethod
 
 class Layer(ABC):
     def __init__(self, input_len=0, output_len=0, learning_rate=0.01, weights=None, bias=None):
-        if weights and bias:
+        if weights is not None:
             self.weights = weights
+        if bias is not None:
             self.bias = bias
         else:
             self.bias = np.zeros(output_len)
@@ -17,6 +18,7 @@ class Layer(ABC):
         self.output = None
         self.weights_grad = None
         self.bias_grad = None
+        self.set_name()
     
     @abstractmethod
     def set_name(self):

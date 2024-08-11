@@ -12,29 +12,22 @@ def one_hot(labels):
     y_one_hot[np.arange(labels.size), labels] = 1
     return y_one_hot
 
-def split_data(data_x, data_y, train_prop, test_prop):
-    if len(data_x) != len(data_y):
-        logging.error("Data and labels have different lengths")
-        exit(1)
-    elif train_prop + test_prop != 1:
+def split_data(data, train_prop, test_prop): 
+
+    if train_prop + test_prop != 1:
         logging.error("Invalid train and test proportions")
         exit(1)
 
-    train_size = int(len(data_x) * train_prop)
-    valid_size = int(len(data_x) * test_prop)
+    train_size = int(len(data) * train_prop)
+    test_size = int(len(data) * test_prop)
 
     # shuffle data
-    indices = np.arange(len(data_x))
-    np.random.shuffle(indices)
-    data_x = data_x[indices]
-    data_y = data_y[indices]
+    data = data.sample(frac=1).reset_index(drop=True)
 
-    train_x = data_x[:train_size]
-    train_y = data_y[:train_size]
-    valid_x = data_x[train_size:train_size + valid_size]
-    valid_y = data_y[train_size:train_size + valid_size]
+    train = data[:train_size]
+    test = data[train_size:train_size + test_size]
 
-    return train_x, train_y, valid_x, valid_y
+    return train, test
 
 def normalize_data(dataset):
     min_list = np.min(dataset, axis=0)
@@ -59,14 +52,9 @@ def get_batches(data_x, data_y, batch_size):
 
     return batches_x, batches_y
 
-def preprocessing(preprocessing_config={}, verbose=False):
-    data_path = preprocessing_config['data_path']
-    seed = preprocessing_config['seed']
+def load_dataset(data_path, preprocessing_config, verbose=True):
     header = preprocessing_config['header']
-
-    if data_path is None or os.path.exists(data_path) is False:
-        logging.error(f"Invalid or missing data file: {data_path}")
-        exit(1)
+    seed = preprocessing_config['seed']
 
     with open(data_path, 'r') as data_file:
         data = pd.read_csv(data_file, header=None)
@@ -84,7 +72,54 @@ def preprocessing(preprocessing_config={}, verbose=False):
     
     if verbose:
         logging.info(f"Data loaded from {data_path}")
-        print(data.describe())
 
     data_x = normalize_data(data_x)
     return data_x, data_y
+
+def create_datasets(data_path, preprocessing_config, verbose=True):
+    path_save_data = preprocessing_config['path_save_data']
+    if verbose:
+        logging.info(f"Creating datasets from {data_path}")
+
+    if path_save_data is None or os.path.exists(path_save_data) is False:
+        logging.error(f"Invalid path to save data: {path_save_data}")
+        exit(1)
+
+    train_prop = preprocessing_config['train_prop']
+    test_prop = preprocessing_config['test_prop']
+
+    with open(data_path, 'r') as data_file:
+        data = pd.read_csv(data_file, header=None)
+    if verbose:
+        logging.info(f"Data loaded from {data_path}")
+        print(data.describe())
+
+    train, test = split_data(data, train_prop, test_prop)
+    train.to_csv(os.path.join(path_save_data, 'train_dataset'), index=False, header=False)
+    test.to_csv(os.path.join(path_save_data, 'test_dataset'), index=False, header=False)    
+
+def preprocessing(preprocessing_config={}, verbose=True):
+    data_path = preprocessing_config['data_path']
+    data_train_path = preprocessing_config['data_train_path']
+    data_test_path = preprocessing_config['data_test_path']
+    path_save_data = preprocessing_config['path_save_data']
+    force_creation = preprocessing_config['force_dataset_creation']
+
+    if force_creation == True:
+        create_datasets(data_path, preprocessing_config, verbose)
+        data_train_path = os.path.join(path_save_data, 'train_dataset')
+        data_test_path = os.path.join(path_save_data, 'test_dataset')
+    elif force_creation == False and data_path is not None and os.path.exists(data_path) is True:
+        create_datasets(data_path, preprocessing_config, verbose)
+        data_train_path = os.path.join(path_save_data, 'train_dataset')
+        data_test_path = os.path.join(path_save_data, 'test_dataset')
+    elif data_train_path is not None and os.path.exists(data_train_path) is False \
+        or data_test_path is not None and os.path.exists(data_test_path) is False:
+        create_datasets(data_path, preprocessing_config, verbose)
+        data_train_path = os.path.join(path_save_data, 'train_dataset')
+        data_test_path = os.path.join(path_save_data, 'test_dataset')
+
+    train_x, train_y = load_dataset(data_train_path, preprocessing_config, verbose)
+    test_x, test_y = load_dataset(data_test_path, preprocessing_config, verbose)
+
+    return train_x, train_y, test_x, test_y

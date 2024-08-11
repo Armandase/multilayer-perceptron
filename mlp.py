@@ -40,7 +40,7 @@ def main(config_path: str):
 
         verbose = config['verbose']
         preprocessing_config = config['preprocessing']
-        data_x, data_y = preprocessing(preprocessing_config, verbose)
+        train_x, train_y, test_x, test_y = preprocessing(preprocessing_config, verbose)
 
     config_model = config['model']
     model = create_model(config_model)
@@ -48,18 +48,20 @@ def main(config_path: str):
     batch_size = config_model['batch_size']
     epochs = config_model['epochs']
     learning_rate = config_model['learning_rate']
-    train_prop = config_model['train_prop']
-    test_prop = config_model['test_prop']
 
-    historic = model.fit(data_x, data_y, batch_size, epochs, learning_rate, train_prop, test_prop, verbose)
+    historic = model.fit(train_x, train_y, test_x, test_y, batch_size, epochs, learning_rate, verbose)
 
     plot_curve(historic)
-    # net.save_weights()
+    print("Training completed")
+    model.save_weights(config_model['model_path'])
 
 
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser()
     argparser.add_argument('--config', '-c', type=str, default='config.yaml')
     args = argparser.parse_args()
-    main(args.config)
+    try:
+        main(args.config)
+    except Exception as e:
+        print('Error:', e)
 

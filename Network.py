@@ -56,12 +56,12 @@ class Network:
         for layer in self.layers:
             layer.upate_weights()        
 
-    def fit(self, data_x=None, data_y=None, 
+    def fit(self, train_x, train_y, test_x, test_y,
             batch_size=64, epochs=1000, learning_rate=0.01, 
-            train_prop=0.8, test_prop=0.2, verbose=False, early_stopping=0.0001):
+            train_prop=0.8, test_prop=0.2, verbose=True, early_stopping=0.0001):
         self.early_stopping = early_stopping
         self.learning_rate = learning_rate
-        train_x, train_y, valid_x, valid_y = split_data(data_x, data_y, train_prop, test_prop)
+        # train_x, train_y, test_x, test_y = split_data(data_x, data_y, train_prop, test_prop)
 
         historic = {
             "epoch": 0, "accu": [], "val_accu": [], "loss_entropy": [], "val_loss_entropy": [], "loss_mse": [], "val_loss_mse": []
@@ -96,11 +96,12 @@ class Network:
             accu = avg_accu / nb_batches
             table.add_row(["Training", round(loss_entropy, 4), round(loss_subject_entropy, 4), round(loss_mse, 4), round(accu, 4)])
 
-            pred = self.feedforward(valid_x, False)
-            val_loss_entropy = binary_cross_entropy(valid_y, pred)
-            val_loss_subject_entropy = subject_binary_cross_entropy(one_hot(valid_y), pred)
-            val_loss_mse = meanSquareError(pred, valid_y)
-            val_accu = accuracy(valid_y, pred)
+            # Compute test metrics
+            pred = self.feedforward(test_x, False)
+            val_loss_entropy = binary_cross_entropy(test_y, pred)
+            val_loss_subject_entropy = subject_binary_cross_entropy(one_hot(test_y), pred)
+            val_loss_mse = meanSquareError(pred, test_y)
+            val_accu = accuracy(test_y, pred)
 
             table.add_row(["Validation", round(val_loss_entropy, 4), round(val_loss_subject_entropy, 4), round(val_loss_mse, 4), round(val_accu, 4)])
             print(table)
@@ -113,26 +114,23 @@ class Network:
             
         return historic 
 
-    # def save_weights(self, batch_size=BATCH_SIZE, epoch=EPOCHS):
-    #     data = {
-    #         'learning_rate': self.learning_rate,
-    #         'batch_size': batch_size,
-    #         'epoch': epoch,
-    #         'network': []}
-    #     for layer in self.layers:
-    #         layer_data = {
-    #             'name': layer.name,
-    #             'shape': [layer.weights.shape[0], layer.weights.shape[1]],
-    #             'weights': layer.weights.tolist(),
-    #             'bias': layer.bias.tolist(),
-    #         }
-    #         data['network'].append(layer_data)
+    def save_weights(self, path):
+        data = {'network': []}
 
-    #     json_data = json.dumps(data, indent=4)
+        for layer in self.layers:
+            layer_data = {
+                'name': layer.name,
+                'shape': [layer.weights.shape[0], layer.weights.shape[1]],
+                'weights': layer.weights.tolist(),
+                'bias': layer.bias.tolist(),
+            }
+            data['network'].append(layer_data)
+
+        json_data = json.dumps(data, indent=4)
  
-    #     try:
-    #         with open(WEIGHT_PATH, 'w', newline='') as outfile:
-    #             outfile.write(json_data)
-    #         print('Written to file successfully')
-    #     except Exception as e:
-    #         print("An error occurred:", str(e))
+        try:
+            with open(path, 'w', newline='') as outfile:
+                outfile.write(json_data)
+            print('Written to file successfully')
+        except Exception as e:
+            print("An error occurred:", str(e))
