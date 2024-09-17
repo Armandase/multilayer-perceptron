@@ -52,9 +52,7 @@ class Network:
         gradient = y_train
         for layer in reversed(self.layers):
             gradient = layer.backpropagation(gradient)
-
-        for layer in self.layers:
-            layer.upate_weights()        
+        self.update_model()
 
     def fit(self, train_x, train_y, test_x, test_y,
             batch_size=64, epochs=1000, learning_rate=0.01, 
@@ -66,6 +64,9 @@ class Network:
         historic = {
             "epoch": 0, "accu": [], "val_accu": [], "loss_entropy": [], "val_loss_entropy": [], "loss_mse": [], "val_loss_mse": []
         }
+
+        best_subject_entropy = np.inf
+        best_accuracy = 0
         for epoch in range(epochs):
             table = init_table(epoch, epochs)
             batches_x, batches_y = get_batches(train_x, train_y, batch_size)
@@ -77,18 +78,19 @@ class Network:
             avg_subject_entropy = 0
             nb_batches = len(batches_x)
             for x, y in zip(batches_x, batches_y):
-                y_one_hot = np.zeros((y.size, y.max()+1))
+                y_one_hot = np.zeros((y.size, y.max() + 1))
                 y_one_hot[np.arange(y.size), y] = 1
-                a = np.array(y, copy=True)
 
                 output = self.feedforward(x, True)
-                zob = np.array(output, copy=True)
                 
-                avg_loss_entropy += binary_cross_entropy(y, output)
+                avg_loss_entropy += binary_cross_entropy(np.array(y, copy=True), np.array(output, copy=True))
                 avg_mse += meanSquareError(output, y)
-                avg_accu += accuracy(a, zob)
-                avg_subject_entropy += subject_binary_cross_entropy(y_one_hot, output)
-                self.backpropagation(y)
+                avg_accu += accuracy(np.array(y, copy=True), np.array(output, copy=True))
+                avg_subject_entropy += subject_binary_cross_entropy(np.array(y_one_hot, copy=True), np.array(output, copy=True))
+
+                grad = derivative_binary_cross_entropy(np.array(y_one_hot, copy=True), np.array(output, copy=True))
+                # self.backpropagation(y_one_hot)
+                self.backpropagation(grad)
                 
             loss_entropy = avg_loss_entropy / nb_batches
             loss_subject_entropy = avg_subject_entropy / nb_batches
@@ -103,6 +105,11 @@ class Network:
             val_loss_mse = meanSquareError(pred, test_y)
             val_accu = accuracy(test_y, pred)
 
+            if best_subject_entropy > val_loss_subject_entropy:
+                best_subject_entropy = val_loss_subject_entropy
+            if best_accuracy < val_accu:
+                best_accuracy = val_accu
+
             table.add_row(["Validation", round(val_loss_entropy, 4), round(val_loss_subject_entropy, 4), round(val_loss_mse, 4), round(val_accu, 4)])
             print(table)
             
@@ -111,7 +118,9 @@ class Network:
             if np.abs(prev_val_loss_entropy - val_loss_entropy) < self.early_stopping:
                 break
             prev_val_loss_entropy = val_loss_entropy
-            
+
+        print(f"Best subject entropy with data_test: {best_subject_entropy}")
+        print(f"Best accuracy with data_test: {best_accuracy}")
         return historic 
 
     def save_weights(self, path):

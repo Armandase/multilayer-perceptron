@@ -7,6 +7,7 @@ import os
 
 from Sigmoid import Sigmoid
 from Relu import Relu
+from Tanh import Tanh
 from Softmax import Softmax
 from parsing import preprocessing
 from Network import Network
@@ -20,13 +21,21 @@ def create_model(config_model):
     fc1_output = config_model['fc1']
     fc2_output = config_model['fc2']
     fc3_output = config_model['fc3']
+    fc4_output = config_model['fc4']
+    fc5_output = config_model['fc5']
     lr = config_model['learning_rate']
 
     model.addLayers(Relu(nb_feature, fc1_output, learning_rate=lr))
+    model.addLayers(Dropout(fc1_output, dropout_rate=0.2))
     model.addLayers(Relu(fc1_output, fc2_output, learning_rate=lr))
-    model.addLayers(Dropout(fc2_output, dropout_rate=0.3))
+    model.addLayers(Dropout(fc2_output, dropout_rate=0.2))
     model.addLayers(Relu(fc2_output, fc3_output, learning_rate=lr))
-    model.addLayers(Softmax(fc3_output, 2, learning_rate=lr))
+    model.addLayers(Dropout(fc3_output, dropout_rate=0.2))
+    model.addLayers(Relu(fc3_output, fc4_output, learning_rate=lr))
+    # model.addLayers(Dropout(fc2_output, dropout_rate=0.3))
+    model.addLayers(Dropout(fc3_output, dropout_rate=0.2))
+    model.addLayers(Tanh(fc4_output, fc5_output, learning_rate=lr))
+    model.addLayers(Softmax(fc5_output, 2, learning_rate=lr))
 
     return model
 
@@ -62,8 +71,8 @@ if __name__ == '__main__':
     argparser = argparse.ArgumentParser()
     argparser.add_argument('--config', '-c', type=str, default='config.yaml')
     args = argparser.parse_args()
-    try:
-        main(args.config)
-    except Exception as e:
-        print('Error:', e)
+    # try:
+    main(args.config)
+    # except Exception as e:
+        # print('Error:', e)
 

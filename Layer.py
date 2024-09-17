@@ -3,6 +3,19 @@ import random
 from parsing import *
 from abc import ABC, abstractmethod
 
+def initialize_weights(input_len, output_len, method="he_uniform"):
+    if method == "random_default":
+        return np.random.rand((input_len, output_len))
+    elif method == "random_uniform":
+        return np.random.uniform(-1, 1, (input_len, output_len))
+    elif method == "random_normal":
+        return np.random.normal(0, 1, (input_len, output_len))
+    elif method == "he_normal":
+        return np.random.normal(0, np.sqrt(2/input_len), (input_len, output_len))
+    elif method == "he_uniform":
+        return np.random.uniform(-np.sqrt(6/input_len), np.sqrt(6/input_len), (input_len, output_len))  
+    # elif method == "xavier":
+    
 
 class Layer(ABC):
     def __init__(self, input_len=0, output_len=0, learning_rate=0.01, weights=None, bias=None, dropout_rate=0.3):
@@ -12,7 +25,7 @@ class Layer(ABC):
             self.bias = bias
         else:
             self.bias = np.zeros(output_len)
-            self.weights = np.random.rand(input_len, output_len) / np.sqrt(input_len)
+            self.weights = initialize_weights(input_len, output_len)
         self.learning_rate = learning_rate
         self.input = None
         self.output = None
@@ -46,7 +59,8 @@ class Layer(ABC):
 
         if train:
             self.input = input
-            self.output = output
+            # self.output = output
+            self.output = weighted_sums
         return output
     
     def upate_weights(self):

@@ -95,8 +95,8 @@ def create_datasets(data_path, preprocessing_config, verbose=True):
         print(data.describe())
 
     train, test = split_data(data, train_prop, test_prop)
-    train.to_csv(os.path.join(path_save_data, 'train_dataset'), index=False, header=False)
-    test.to_csv(os.path.join(path_save_data, 'test_dataset'), index=False, header=False)    
+    train.to_csv(os.path.join(path_save_data, 'data_train.csv'), index=False, header=False)
+    test.to_csv(os.path.join(path_save_data, 'data_test.csv'), index=False, header=False)    
 
 def preprocessing(preprocessing_config={}, verbose=True):
     data_path = preprocessing_config['data_path']
@@ -107,17 +107,17 @@ def preprocessing(preprocessing_config={}, verbose=True):
 
     if force_creation == True:
         create_datasets(data_path, preprocessing_config, verbose)
-        data_train_path = os.path.join(path_save_data, 'train_dataset')
-        data_test_path = os.path.join(path_save_data, 'test_dataset')
+        data_train_path = os.path.join(path_save_data, 'data_train.csv')
+        data_test_path = os.path.join(path_save_data, 'data_test.csv')
     elif force_creation == False and data_path is not None and os.path.exists(data_path) is True:
         create_datasets(data_path, preprocessing_config, verbose)
-        data_train_path = os.path.join(path_save_data, 'train_dataset')
-        data_test_path = os.path.join(path_save_data, 'test_dataset')
+        data_train_path = os.path.join(path_save_data, 'data_train.csv')
+        data_test_path = os.path.join(path_save_data, 'data_test.csv')
     elif data_train_path is not None and os.path.exists(data_train_path) is False \
         or data_test_path is not None and os.path.exists(data_test_path) is False:
         create_datasets(data_path, preprocessing_config, verbose)
-        data_train_path = os.path.join(path_save_data, 'train_dataset')
-        data_test_path = os.path.join(path_save_data, 'test_dataset')
+        data_train_path = os.path.join(path_save_data, 'data_train.csv')
+        data_test_path = os.path.join(path_save_data, 'data_test.csv')
 
     train_x, train_y = load_dataset(data_train_path, preprocessing_config, verbose)
     test_x, test_y = load_dataset(data_test_path, preprocessing_config, verbose)

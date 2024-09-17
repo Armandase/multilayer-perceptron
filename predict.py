@@ -10,7 +10,9 @@ from parsing import one_hot
 from Network import Network
 from Sigmoid import Sigmoid
 from Softmax import Softmax
+from Dropout import Dropout
 from Relu import Relu
+from Tanh import Tanh
 from parsing import load_dataset
 from math_func import accuracy, binary_cross_entropy, subject_binary_cross_entropy, meanSquareError
 
@@ -32,6 +34,10 @@ def predict(data_x, data_y, model_path, seed):
                 net.addLayers(Relu(weights=weights, bias=bias))
             elif layer['name'] == "softmax":
                 net.addLayers(Softmax(weights=weights, bias=bias))
+            elif layer['name'] == "dropout":
+                net.addLayers(Dropout(weights=weights, bias=bias))
+            elif layer['name'] == "tanh":
+                net.addLayers(Tanh(weights=weights, bias=bias))
             else:
                 raise Exception("Wrong layer name")
 
@@ -71,7 +77,7 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
     argparser.add_argument('--config', '-c', type=str, default='config.yaml')
     args = argparser.parse_args()
-    # try:
-    main(args.config)
-    # except Exception as e:
-        # print('Error:', e)
+    try:
+        main(args.config)
+    except Exception as e:
+        print('Error:', e)
