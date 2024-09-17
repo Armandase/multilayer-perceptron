@@ -31,7 +31,7 @@ class Network:
             print("addLayers: Wrong type of layer")
             return 
         
-        if len(self.layers) > 0 and layer.weights.shape[0] != self.layers[-1].weights.shape[1]:
+        if len(self.layers) > 0 and layer.weights.shape[0] != self.layers[-1].weights.shape[1] and self.layers[-1].name != "dropout":
             print("addLayers: input len of new layers doesn't match (fully connected neural network)")
             return
 

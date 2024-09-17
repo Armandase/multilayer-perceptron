@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 
 
 class Layer(ABC):
-    def __init__(self, input_len=0, output_len=0, learning_rate=0.01, weights=None, bias=None):
+    def __init__(self, input_len=0, output_len=0, learning_rate=0.01, weights=None, bias=None, dropout_rate=0.3):
         if weights is not None:
             self.weights = weights
         if bias is not None:
@@ -18,7 +18,11 @@ class Layer(ABC):
         self.output = None
         self.weights_grad = None
         self.bias_grad = None
+        self.name = ""
         self.set_name()
+        if self.name == "dropout":
+            self.dropout_rate = dropout_rate
+
     
     @abstractmethod
     def set_name(self):
@@ -46,5 +50,7 @@ class Layer(ABC):
         return output
     
     def upate_weights(self):
-        self.weights -= self.learning_rate * self.weights_grad
-        self.bias -= self.learning_rate * self.bias_grad
+        if self.weights_grad is not None:
+            self.weights -= self.learning_rate * self.weights_grad
+        if self.bias_grad is not None:
+            self.bias -= self.learning_rate * self.bias_grad

@@ -11,6 +11,7 @@ from Softmax import Softmax
 from parsing import preprocessing
 from Network import Network
 from plotting import plot_curve
+from Dropout import Dropout
 
 def create_model(config_model):
     model = Network()
@@ -23,6 +24,7 @@ def create_model(config_model):
 
     model.addLayers(Relu(nb_feature, fc1_output, learning_rate=lr))
     model.addLayers(Relu(fc1_output, fc2_output, learning_rate=lr))
+    model.addLayers(Dropout(fc2_output, dropout_rate=0.3))
     model.addLayers(Relu(fc2_output, fc3_output, learning_rate=lr))
     model.addLayers(Softmax(fc3_output, 2, learning_rate=lr))
 
