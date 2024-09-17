@@ -1,11 +1,11 @@
 import json
 import numpy as np
-import math
 import prettytable
 
 from Layer import Layer
 from parsing import *
 from math_func import *
+from Callback import Callback
 
 def init_table(current_epoch, epochs):
     table = prettytable.PrettyTable()
@@ -23,8 +23,11 @@ def update_historic(historic, epoch, accu, val_accu, loss_entropy, val_loss_entr
     historic["val_loss_mse"].append(val_loss_mse)
 
 class Network:
-    def __init__(self):
+    def __init__(self, callbacks=None):
         self.layers = []
+        self.callbacks = None
+        if callbacks:
+            self.callbacks = callbacks
 
     def addLayers(self, layer):
         if isinstance(layer, Layer) == False:
@@ -113,8 +116,11 @@ class Network:
             table.add_row(["Validation", round(val_loss_entropy, 4), round(val_loss_subject_entropy, 4), round(val_loss_mse, 4), round(val_accu, 4)])
             print(table)
             
-            update_historic(historic, epoch, accu, val_accu, loss_entropy, val_loss_entropy, loss_mse, val_loss_mse)
+            update_historic(historic, epoch, accu, val_accu, loss_subject_entropy, val_loss_subject_entropy, loss_mse, val_loss_mse)
             
+            if self.callbacks.callback_manager(historic, self) == True:
+                break 
+
             if np.abs(prev_val_loss_entropy - val_loss_entropy) < self.early_stopping:
                 break
             prev_val_loss_entropy = val_loss_entropy

@@ -13,9 +13,22 @@ from parsing import preprocessing
 from Network import Network
 from plotting import plot_curve
 from Dropout import Dropout
+from Callback import Callback
 
-def create_model(config_model):
-    model = Network()
+def get_callback_from_config(config_callback):
+    enable_early_stop = config_callback ['enable_early_stop']
+    early_stop = config_callback['early_stop']
+    enable_save_best_model = config_callback ['enable_save_best_model']
+    best_model_path = config_callback ['best_model_path']
+    callback = Callback(enable_early_stop=enable_early_stop, early_stop_delta=early_stop,
+                        enable_save_best_vloss=enable_save_best_model, path_best_model=best_model_path)
+    return callback
+
+
+def create_model_big(config_model):
+    callbacks = get_callback_from_config(config_model['callbacks'])
+
+    model = Network(callbacks)
 
     nb_feature = config_model['intput_len']
     fc1_output = config_model['fc1']
@@ -32,10 +45,30 @@ def create_model(config_model):
     model.addLayers(Relu(fc2_output, fc3_output, learning_rate=lr))
     model.addLayers(Dropout(fc3_output, dropout_rate=0.2))
     model.addLayers(Relu(fc3_output, fc4_output, learning_rate=lr))
-    # model.addLayers(Dropout(fc2_output, dropout_rate=0.3))
     model.addLayers(Dropout(fc3_output, dropout_rate=0.2))
     model.addLayers(Tanh(fc4_output, fc5_output, learning_rate=lr))
     model.addLayers(Softmax(fc5_output, 2, learning_rate=lr))
+
+    return model
+
+def create_model_tiny(config_model):
+    callbacks = get_callback_from_config(config_model['callbacks'])
+
+    model = Network(callbacks)
+
+    nb_feature = config_model['intput_len']
+    fc1_output = config_model['fc1']
+    fc2_output = config_model['fc2']
+    fc3_output = config_model['fc3']
+    lr = config_model['learning_rate']
+
+
+    model.addLayers(Relu(nb_feature, fc1_output, learning_rate=lr))
+    model.addLayers(Dropout(fc1_output, dropout_rate=0.2))
+    model.addLayers(Relu(fc1_output, fc2_output, learning_rate=lr))
+    model.addLayers(Dropout(fc2_output, dropout_rate=0.2))
+    model.addLayers(Relu(fc2_output, fc3_output, learning_rate=lr))
+    model.addLayers(Softmax(fc3_output, 2, learning_rate=lr))
 
     return model
 
@@ -54,7 +87,7 @@ def main(config_path: str):
         train_x, train_y, test_x, test_y = preprocessing(preprocessing_config, verbose)
 
     config_model = config['model']
-    model = create_model(config_model)
+    model = create_model_tiny(config_model)
 
     batch_size = config_model['batch_size']
     epochs = config_model['epochs']

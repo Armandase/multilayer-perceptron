@@ -4,11 +4,11 @@ preprocessing:
   #data_train_path: 'datasets/train_dataset.csv' # Path of the train dataset
   #data_test_path: 'datasets/test_dataset.csv' # Path of the test dataset
   
-  # data_train_path: 'correction/data_train.csv' # Path of the train dataset
-  # data_test_path: 'correction/data_test.csv' # Path of the test dataset
-  data_test_path: 'datasets/data_test.csv' # Path of the test dataset
-  data_train_path: 'datasets/data_train.csv' # Path of the train dataset
-  force_dataset_creation: true # Force the creation of the dataset
+  data_train_path: 'correction/data_train.csv' # Path of the train dataset
+  data_test_path: 'correction/data_test.csv' # Path of the test dataset
+  # data_test_path: 'datasets/data_test.csv' # Path of the test dataset
+  # data_train_path: 'datasets/data_train.csv' # Path of the train dataset
+  force_dataset_creation: false # Force the creation of the dataset
   path_save_data: '/home/armand/42/mlp_update/datasets/' # Path to save the dataset
 
   shuffle: true # Shuffling the data
@@ -33,13 +33,24 @@ model:
   batch_size: 16
   learning_rate: 0.0001
   nb_output: 2
-  early_stop: 0.05
+  
+  callbacks:
+    enable_early_stop: True
+    early_stop: 0.0000001
+  
+    enable_save_best_model: True
+    best_model_path: 'save_model/best_model.json'
+
 
   fc1: 64
-  fc2: 256
-  fc3: 128
-  fc4: 128
-  fc5: 64
+  fc2: 32
+  fc3: 32
+
+  # fc1: 64
+  # fc2: 256
+  # fc3: 128
+  # fc4: 128
+  # fc5: 64
 
 predict:
   data_path: 'correction/data_test.csv' # Path of the dataset
