@@ -1,15 +1,9 @@
 preprocessing:
-  #data_path: 'correction/data_training.csv' # Path of the dataset
   data_path: 'data.csv' # Path of the dataset
-  #data_train_path: 'datasets/train_dataset.csv' # Path of the train dataset
-  #data_test_path: 'datasets/test_dataset.csv' # Path of the test dataset
-  
   data_train_path: 'correction/data_train.csv' # Path of the train dataset
   data_test_path: 'correction/data_test.csv' # Path of the test dataset
-  # data_test_path: 'datasets/data_test.csv' # Path of the test dataset
-  # data_train_path: 'datasets/data_train.csv' # Path of the train dataset
-  force_dataset_creation: false # Force the creation of the dataset
-  path_save_data: '/home/armand/42/mlp_update/datasets/' # Path to save the dataset
+  force_dataset_creation: true # Force the creation of the dataset
+  path_save_data: '/home/armand/42/multilayer_perceptron' # Path to save the dataset
 
   shuffle: true # Shuffling the data
   seed: -1 # seed uses with 'random' package (-1 for disable it)
@@ -29,8 +23,8 @@ preprocessing:
 model:
   intput_len: 30
   model_path: 'save_model/model.json'
-  epochs: 1000
-  batch_size: 16
+  epochs: 10000
+  batch_size: 64
   learning_rate: 0.0001
   nb_output: 2
   

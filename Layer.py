@@ -14,6 +14,8 @@ def initialize_weights(input_len, output_len, method="he_uniform"):
         return np.random.normal(0, np.sqrt(2/input_len), (input_len, output_len))
     elif method == "he_uniform":
         return np.random.uniform(-np.sqrt(6/input_len), np.sqrt(6/input_len), (input_len, output_len))  
+    else:
+        raise ValueError("Invalid method for initializing weights")
     # elif method == "xavier":
     
 
@@ -59,7 +61,6 @@ class Layer(ABC):
 
         if train:
             self.input = input
-            # self.output = output
             self.output = weighted_sums
         return output
     

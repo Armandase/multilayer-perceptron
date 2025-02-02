@@ -47,7 +47,7 @@ class Callback():
         if self.best_vloss >  float(history['val_loss_entropy'][self.current_epoch]) \
             and self.last_epoch != history['epoch']:
             #save the current best model and earse the previous
-            model.save_weights(self, self.path_best_model)
+            model.save_weights(self.path_best_model)
             self.best_vloss = float(history['val_loss_entropy'][self.current_epoch])
         return
 

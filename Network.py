@@ -118,7 +118,7 @@ class Network:
             
             update_historic(historic, epoch, accu, val_accu, loss_subject_entropy, val_loss_subject_entropy, loss_mse, val_loss_mse)
             
-            if self.callbacks.callback_manager(historic, self.__) == True:
+            if self.callbacks.callback_manager(historic, self) == True:
                 break 
 
             if np.abs(prev_val_loss_entropy - val_loss_entropy) < self.early_stopping:
