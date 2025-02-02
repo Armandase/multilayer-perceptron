@@ -1,6 +1,7 @@
 __pycache__/
-correction
+correction/
+datasets/
+save_model/
+data.csv
+scores
 todo
-datasets
-correction
-save_model
