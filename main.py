@@ -60,13 +60,18 @@ def create_model_tiny(config_model):
     fc1_output = config_model['fc1']
     fc2_output = config_model['fc2']
     fc3_output = config_model['fc3']
+    dropout_rate = config_model['dropout_rate']
     lr = config_model['learning_rate']
 
+    if dropout_rate > 1 or dropout_rate < 0:
+        raise Exception("Dropout rate should be between 0 and 1.")
 
     model.addLayers(Relu(nb_feature, fc1_output, learning_rate=lr))
-    model.addLayers(Dropout(fc1_output, dropout_rate=0.2))
+    if dropout_rate > 0:
+        model.addLayers(Dropout(fc1_output, dropout_rate=dropout_rate))
     model.addLayers(Relu(fc1_output, fc2_output, learning_rate=lr))
-    model.addLayers(Dropout(fc2_output, dropout_rate=0.2))
+    if dropout_rate > 0:
+        model.addLayers(Dropout(fc2_output, dropout_rate=dropout_rate))
     model.addLayers(Relu(fc2_output, fc3_output, learning_rate=lr))
     model.addLayers(Softmax(fc3_output, 2, learning_rate=lr))
 
