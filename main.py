@@ -66,13 +66,13 @@ def create_model_tiny(config_model):
     if dropout_rate > 1 or dropout_rate < 0:
         raise Exception("Dropout rate should be between 0 and 1.")
 
-    model.addLayers(Relu(nb_feature, fc1_output, learning_rate=lr))
+    model.addLayers(Sigmoid(nb_feature, fc1_output, learning_rate=lr))
     if dropout_rate > 0:
         model.addLayers(Dropout(fc1_output, dropout_rate=dropout_rate))
-    model.addLayers(Relu(fc1_output, fc2_output, learning_rate=lr))
+    model.addLayers(Sigmoid(fc1_output, fc2_output, learning_rate=lr))
     if dropout_rate > 0:
         model.addLayers(Dropout(fc2_output, dropout_rate=dropout_rate))
-    model.addLayers(Relu(fc2_output, fc3_output, learning_rate=lr))
+    model.addLayers(Sigmoid(fc2_output, fc3_output, learning_rate=lr))
     model.addLayers(Softmax(fc3_output, 2, learning_rate=lr))
 
     return model

@@ -23,9 +23,9 @@ preprocessing:
 model:
   intput_len: 30
   model_path: 'save_model/model.json'
-  epochs: 10000
-  batch_size: 64
-  learning_rate: 0.0001
+  epochs: 5000
+  batch_size: 16
+  learning_rate: 0.001
   nb_output: 2
   
   callbacks:
@@ -40,7 +40,8 @@ model:
   fc2: 32
   fc3: 32
 
-  dropout_rate: 0
+  dropout_rate: 0.4
+
   # fc1: 64
   # fc2: 256
   # fc3: 128

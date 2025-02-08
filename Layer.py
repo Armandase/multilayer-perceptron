@@ -2,6 +2,7 @@ import numpy as np
 import random
 from parsing import *
 from abc import ABC, abstractmethod
+from AdamOptim import AdamOptim
 
 def initialize_weights(input_len, output_len, method="he_uniform"):
     if method == "random_default":
@@ -16,7 +17,6 @@ def initialize_weights(input_len, output_len, method="he_uniform"):
         return np.random.uniform(-np.sqrt(6/input_len), np.sqrt(6/input_len), (input_len, output_len))  
     else:
         raise ValueError("Invalid method for initializing weights")
-    # elif method == "xavier":
     
 
 class Layer(ABC):
@@ -35,6 +35,7 @@ class Layer(ABC):
         self.bias_grad = None
         self.name = ""
         self.set_name()
+        self.optimizer = AdamOptim(eta=learning_rate)
         if self.name == "dropout":
             self.dropout_rate = dropout_rate
 
@@ -64,8 +65,10 @@ class Layer(ABC):
             self.output = weighted_sums
         return output
     
-    def upate_weights(self):
-        if self.weights_grad is not None:
-            self.weights -= self.learning_rate * self.weights_grad
-        if self.bias_grad is not None:
-            self.bias -= self.learning_rate * self.bias_grad
+    def upate_weights(self, epoch):
+        # if self.weights_grad is not None:
+        #     self.weights -= self.learning_rate * self.weights_grad
+        # if self.bias_grad is not None:
+        #     self.bias -= self.learning_rate * self.bias_grad
+        if self.weights_grad is not None and self.bias_grad is not None:
+            self.weights, self.bias = self.optimizer.update(epoch, self.weights, self.bias, self.weights_grad, self.bias_grad)

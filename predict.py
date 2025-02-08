@@ -29,7 +29,7 @@ def predict(data_x, data_y, model_path, seed):
             weights = np.array(layer['weights'])
             bias = np.array(layer['bias'])
             if layer['name'] == "sigmoid":
-                net.addLayers(Sigmoid(weights=weights, biais=bias))
+                net.addLayers(Sigmoid(weights=weights, bias=bias))
             elif layer['name'] == "relu":
                 net.addLayers(Relu(weights=weights, bias=bias))
             elif layer['name'] == "softmax":
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
     argparser.add_argument('--config', '-c', type=str, default='config.yaml')
     args = argparser.parse_args()
-    try:
-        main(args.config)
-    except Exception as e:
-        print('Error:', e)
+    # try:
+    main(args.config)
+    # except Exception as e:
+        # print('Error:', e)

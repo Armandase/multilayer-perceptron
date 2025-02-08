@@ -47,15 +47,15 @@ class Network:
             output = layer.feedforward(output, train)
         return output
 
-    def update_model(self):
+    def update_model(self, epoch):
         for layer in self.layers:
-            layer.upate_weights()
+            layer.upate_weights(epoch)
 
-    def backpropagation(self, y_train):
+    def backpropagation(self, y_train, epoch):
         gradient = y_train
         for layer in reversed(self.layers):
             gradient = layer.backpropagation(gradient)
-        self.update_model()
+        self.update_model(epoch)
 
     def fit(self, train_x, train_y, test_x, test_y,
             batch_size=64, epochs=1000, learning_rate=0.01, 
@@ -92,8 +92,9 @@ class Network:
                 avg_subject_entropy += subject_binary_cross_entropy(np.array(y_one_hot, copy=True), np.array(output, copy=True))
 
                 grad = derivative_binary_cross_entropy(np.array(y_one_hot, copy=True), np.array(output, copy=True))
+                # grad = derivative_subject_binary_cross_entropy(np.array(y_one_hot, copy=True), np.array(output, copy=True))
                 # self.backpropagation(y_one_hot)
-                self.backpropagation(grad)
+                self.backpropagation(grad, epoch)
                 
             loss_entropy = avg_loss_entropy / nb_batches
             loss_subject_entropy = avg_subject_entropy / nb_batches
