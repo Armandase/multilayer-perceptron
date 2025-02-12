@@ -68,7 +68,6 @@ class Network:
             verbose=True, early_stopping=0.0001):
         self.early_stopping = early_stopping
         self.learning_rate = learning_rate
-        # train_x, train_y, test_x, test_y = split_data(data_x, data_y, train_prop, test_prop)
 
         historic = {
             "epoch": 0, "accu": [], "val_accu": [], "loss_entropy": [], "val_loss_entropy": [], "loss_mse": [], "val_loss_mse": []
@@ -99,7 +98,11 @@ class Network:
 
                 # grad = derivative_binary_cross_entropy(np.array(y_one_hot, copy=True), np.array(output, copy=True))
                 grad = derivative_subject_binary_cross_entropy(np.array(y_one_hot, copy=True), np.array(output, copy=True))
-                # self.backpropagation(y_one_hot)
+                # print(grad)
+                # grad = derivate_mean_square_error(np.array(y_one_hot, copy=True), np.array(output, copy=True))
+                # grad = output - y_one_hot
+                # print(grad)
+                # exit()
                 self.backpropagation(grad, epoch)
                 
             loss_entropy = avg_loss_entropy / nb_batches

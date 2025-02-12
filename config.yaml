@@ -1,7 +1,7 @@
 preprocessing:
-  data_path: 'data.csv' # Path of the dataset
-  data_train_path: 'correction/data_training.csv' # Path of the train dataset
-  data_test_path: 'correction/data_test.csv' # Path of the test dataset
+  data_path: 'correction/data.csv' # Path of the dataset
+  data_train_path: 'data_training.csv' # Path of the train dataset
+  data_test_path: 'data_test.csv' # Path of the test dataset
   force_dataset_creation: false # Force the creation of the dataset
   path_save_data: '/home/armand/42/multilayer_perceptron' # Path to save the dataset
 
@@ -23,9 +23,9 @@ preprocessing:
 model:
   input_len: 30
   model_path: 'save_model/model.json'
-  epochs: 1000
-  batch_size: 256
-  learning_rate: 0.001
+  epochs: 200
+  batch_size: 64
+  learning_rate: 0.05
   nb_output: 2
   
   callbacks:
@@ -37,16 +37,20 @@ model:
     best_model_path: 'save_model/best_model.json'
 
   layers:
-    - name: "relu"
-      output: 20
-    - name: "batchnorm"
-      output: 20
-    - name: "dropout"
-      output: 0.3
-    - name: "relu"
-      output: 10
+    - name: "sigmoid"
+      output: 64
+    # - name: "dropout"
+      # output: 0.5
+    - name: "sigmoid"
+      output: 32
+    # - name: "dropout"
+      # output: 0.3
+    - name: "sigmoid"
+      output: 16
+    # - name: "dropout"
+      # output: 0.2
   
-  optimizer: 'rmsprop'
+  optimizer: 'rsmprop'
 
 predict:
   data_path: 'correction/data_test.csv' # Path of the dataset
