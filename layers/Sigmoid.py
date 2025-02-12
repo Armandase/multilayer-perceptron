@@ -1,4 +1,4 @@
-from Layer import Layer
+from layers.Layer import Layer
 import numpy as np
 
 class Sigmoid(Layer):

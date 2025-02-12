@@ -9,7 +9,9 @@ class AdamOptim():
         self.beta1 = beta1
         self.beta2 = beta2
         self.eps = epsilon
-    
+
+        self.name = "adam"
+
     def update(self, t, w, b, delta_w, delta_b):
         t = t + 1
         # momentum beta1 (moving average)
@@ -27,6 +29,6 @@ class AdamOptim():
         v_delta_bias_corr = self.v_delta_bias / (1 - self.beta2 ** t)
 
         # update model
-        w = w - self.eta * (m_delta_weights_corr / np.sqrt(v_delta_weights_corr) + self.eps)        
-        b = b - self.eta * (m_delta_bias_corr / np.sqrt(v_delta_bias_corr) + self.eps)
+        w = w - self.eta * (m_delta_weights_corr / (np.sqrt(v_delta_weights_corr) + self.eps) )       
+        b = b - self.eta * (m_delta_bias_corr / (np.sqrt(v_delta_bias_corr) + self.eps))
         return w, b

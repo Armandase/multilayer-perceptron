@@ -19,8 +19,8 @@ class Callback():
 
         self.current_epoch = history['epoch']
         if self.list_callback['early_stop'] == True and self.early_stop(history=history) == True:
-                print('Stop learning phase due to the early stop breakpoint')
-                return True
+            print('Stop learning phase due to the early stop breakpoint')
+            return True
         if self.list_callback['save_best_vloss'] == True:
             self.save_best_model(history=history, model=model)
 
@@ -50,6 +50,10 @@ class Callback():
             model.save_weights(self.path_best_model)
             self.best_vloss = float(history['val_loss_entropy'][self.current_epoch])
         return
+    
+    # def step_decay(self, epoch, lr, decay_rate=0.1, decay_step=100):
+        # return lr * (decay_rate ** np.floor(epoch / decay_step))
+        # return lr * (decay_rate ** np.floor(1+epoch / decay_step))
 
 
 

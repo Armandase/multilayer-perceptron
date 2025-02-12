@@ -2,7 +2,7 @@ import json
 import numpy as np
 import prettytable
 
-from Layer import Layer
+from layers.Layer import Layer
 from parsing import *
 from math_func import *
 from Callback import Callback
@@ -28,6 +28,12 @@ class Network:
         self.callbacks = None
         if callbacks:
             self.callbacks = callbacks
+
+    def __str__(self): 
+        str_layers = "Neural Network: \n"
+        for layer in self.layers:
+            str_layers += str(layer) + "\n"
+        return str_layers
 
     def addLayers(self, layer):
         if isinstance(layer, Layer) == False:
@@ -59,7 +65,7 @@ class Network:
 
     def fit(self, train_x, train_y, test_x, test_y,
             batch_size=64, epochs=1000, learning_rate=0.01, 
-            train_prop=0.8, test_prop=0.2, verbose=True, early_stopping=0.0001):
+            verbose=True, early_stopping=0.0001):
         self.early_stopping = early_stopping
         self.learning_rate = learning_rate
         # train_x, train_y, test_x, test_y = split_data(data_x, data_y, train_prop, test_prop)
@@ -91,8 +97,8 @@ class Network:
                 avg_accu += accuracy(np.array(y, copy=True), np.array(output, copy=True))
                 avg_subject_entropy += subject_binary_cross_entropy(np.array(y_one_hot, copy=True), np.array(output, copy=True))
 
-                grad = derivative_binary_cross_entropy(np.array(y_one_hot, copy=True), np.array(output, copy=True))
-                # grad = derivative_subject_binary_cross_entropy(np.array(y_one_hot, copy=True), np.array(output, copy=True))
+                # grad = derivative_binary_cross_entropy(np.array(y_one_hot, copy=True), np.array(output, copy=True))
+                grad = derivative_subject_binary_cross_entropy(np.array(y_one_hot, copy=True), np.array(output, copy=True))
                 # self.backpropagation(y_one_hot)
                 self.backpropagation(grad, epoch)
                 

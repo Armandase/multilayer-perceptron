@@ -8,11 +8,13 @@ import yaml
 
 from parsing import one_hot
 from Network import Network
-from Sigmoid import Sigmoid
-from Softmax import Softmax
-from Dropout import Dropout
-from Relu import Relu
-from Tanh import Tanh
+from layers.Sigmoid import Sigmoid
+from layers.Softmax import Softmax
+from layers.Dropout import Dropout
+from layers.Relu import Relu
+from layers.Tanh import Tanh
+from layers.BatchNorm import BatchNorm
+from layers.L1Norm import L1Normalization
 from parsing import load_dataset
 from math_func import accuracy, binary_cross_entropy, subject_binary_cross_entropy, meanSquareError
 
@@ -36,15 +38,19 @@ def predict(data_x, data_y, model_path, seed):
                 net.addLayers(Softmax(weights=weights, bias=bias))
             elif layer['name'] == "dropout":
                 net.addLayers(Dropout(weights=weights, bias=bias))
+            elif layer['name'] == "batchnorm":
+                net.addLayers(BatchNorm(weights=weights, bias=bias))
+            elif layer['name'] == "l1_normalization":
+                net.addLayers(L1Normalization(weights=weights, bias=bias))
             elif layer['name'] == "tanh":
                 net.addLayers(Tanh(weights=weights, bias=bias))
             else:
                 raise Exception("Wrong layer name")
 
-        y_pred = net.feedforward(data_x, False)
+        y_pred = net.feedforward(data_x, train=False)
 
         precision = accuracy(data_y, y_pred)
-        print("Accuracy: ", precision, " as ", (1 - precision) * 100, "%")
+        print("Accuracy: ", precision, " also ", (precision * 100), "%")
         
         loss = binary_cross_entropy(data_y, y_pred)
         print("Loss global: ", loss)

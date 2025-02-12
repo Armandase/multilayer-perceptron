@@ -5,15 +5,17 @@ import yaml
 import logging
 import os
 
-from Sigmoid import Sigmoid
-from Relu import Relu
-from Tanh import Tanh
-from Softmax import Softmax
 from parsing import preprocessing
 from Network import Network
 from plotting import plot_curve
-from Dropout import Dropout
+from layers.Dropout import Dropout
 from Callback import Callback
+from layers.Sigmoid import Sigmoid
+from layers.Relu import Relu
+from layers.Tanh import Tanh
+from layers.Softmax import Softmax
+from layers.BatchNorm import BatchNorm
+from layers.L1Norm import L1Normalization
 
 def get_callback_from_config(config_callback):
     enable_early_stop = config_callback ['enable_early_stop']
@@ -24,31 +26,49 @@ def get_callback_from_config(config_callback):
                         enable_save_best_vloss=enable_save_best_model, path_best_model=best_model_path)
     return callback
 
+def name_to_class(name):
+    name = name.lower()
+    if name == 'sigmoid':
+        return Sigmoid
+    elif name == 'relu':
+        return Relu
+    elif name == 'tanh':
+        return Tanh
+    elif name == 'softmax':
+        return Softmax
+    elif name == 'dropout':
+        return Dropout
+    elif name == 'batchnorm':
+        return BatchNorm
+    elif name == 'l1_normalization':
+        return L1Normalization
+    else:
+        raise Exception("Invalid layer name")
 
-def create_model_big(config_model):
-    callbacks = get_callback_from_config(config_model['callbacks'])
+def create_model_from_config(config_model):
+    cfg_callbacks = config_model['callbacks']
+    callbacks = get_callback_from_config(cfg_callbacks)
 
     model = Network(callbacks)
 
-    nb_feature = config_model['intput_len']
-    fc1_output = config_model['fc1']
-    fc2_output = config_model['fc2']
-    fc3_output = config_model['fc3']
-    fc4_output = config_model['fc4']
-    fc5_output = config_model['fc5']
+    nb_feature = config_model['input_len']
     lr = config_model['learning_rate']
+    
+    layers = config_model['layers']
+    optimizer = config_model['optimizer']
 
-    model.addLayers(Relu(nb_feature, fc1_output, learning_rate=lr))
-    model.addLayers(Dropout(fc1_output, dropout_rate=0.2))
-    model.addLayers(Relu(fc1_output, fc2_output, learning_rate=lr))
-    model.addLayers(Dropout(fc2_output, dropout_rate=0.2))
-    model.addLayers(Relu(fc2_output, fc3_output, learning_rate=lr))
-    model.addLayers(Dropout(fc3_output, dropout_rate=0.2))
-    model.addLayers(Relu(fc3_output, fc4_output, learning_rate=lr))
-    model.addLayers(Dropout(fc3_output, dropout_rate=0.2))
-    model.addLayers(Tanh(fc4_output, fc5_output, learning_rate=lr))
-    model.addLayers(Softmax(fc5_output, 2, learning_rate=lr))
-
+    above_output = nb_feature
+    for layer in layers:
+        name = layer['name']
+        output = layer['output']
+        if name == 'dropout':
+            layer = name_to_class(name)(above_output, above_output, learning_rate=lr, dropout_rate=output)
+            output = above_output
+        else:
+            layer = name_to_class(name)(above_output, output, learning_rate=lr)
+        above_output = output
+        model.addLayers(layer)
+    model.addLayers(Softmax(output, 2, learning_rate=lr))
     return model
 
 def create_model_tiny(config_model):
@@ -56,10 +76,10 @@ def create_model_tiny(config_model):
 
     model = Network(callbacks)
 
-    nb_feature = config_model['intput_len']
-    fc1_output = config_model['fc1']
-    fc2_output = config_model['fc2']
-    fc3_output = config_model['fc3']
+    nb_feature = config_model['input_len']
+    fc1_output = 64
+    fc2_output = 32
+    fc3_output = 32
     dropout_rate = config_model['dropout_rate']
     lr = config_model['learning_rate']
 
@@ -67,14 +87,15 @@ def create_model_tiny(config_model):
         raise Exception("Dropout rate should be between 0 and 1.")
 
     model.addLayers(Sigmoid(nb_feature, fc1_output, learning_rate=lr))
+    # model.addLayers(BatchNorm(fc1_output, fc1_output, learning_rate=lr))
     if dropout_rate > 0:
         model.addLayers(Dropout(fc1_output, dropout_rate=dropout_rate))
     model.addLayers(Sigmoid(fc1_output, fc2_output, learning_rate=lr))
+    # model.addLayers(BatchNorm(fc2_output, fc2_output, learning_rate=lr))
     if dropout_rate > 0:
         model.addLayers(Dropout(fc2_output, dropout_rate=dropout_rate))
     model.addLayers(Sigmoid(fc2_output, fc3_output, learning_rate=lr))
     model.addLayers(Softmax(fc3_output, 2, learning_rate=lr))
-
     return model
 
 def main(config_path: str):
@@ -92,8 +113,12 @@ def main(config_path: str):
         train_x, train_y, test_x, test_y = preprocessing(preprocessing_config, verbose)
 
     config_model = config['model']
-    model = create_model_tiny(config_model)
-
+    # model = create_model_tiny(config_model)
+    # print("Tiny model:", model)
+    model = create_model_from_config(config_model)
+    # print("From config:", model)
+    # print("Start training")
+    # exit()
     batch_size = config_model['batch_size']
     epochs = config_model['epochs']
     learning_rate = config_model['learning_rate']

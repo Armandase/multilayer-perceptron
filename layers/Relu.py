@@ -1,9 +1,9 @@
-from Layer import Layer
+from layers.Layer import Layer
 import numpy as np
 
-class Tanh(Layer):
+class Relu(Layer):
     def set_name(self):
-        self.name = 'tanh'
+        self.name = 'relu'
 
     def backpropagation(self, above_delta):
         above_delta *= self.derivative_activation_function(self.output)
@@ -15,9 +15,8 @@ class Tanh(Layer):
         return res_delta
     
     def activation_function(self, Z):
-        return np.tanh(Z)
-
-    # tanh derivative : 1 - tanh^2(Z)
+        return np.maximum(0, Z)
+    
     def derivative_activation_function(self, Z):
-        tanh_Z = np.tanh(Z)
-        return 1 - np.square(tanh_Z)
+        return np.where(Z > 0, 1, 0)
+    

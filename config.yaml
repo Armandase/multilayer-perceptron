@@ -1,8 +1,8 @@
 preprocessing:
   data_path: 'data.csv' # Path of the dataset
-  data_train_path: 'correction/data_train.csv' # Path of the train dataset
+  data_train_path: 'correction/data_training.csv' # Path of the train dataset
   data_test_path: 'correction/data_test.csv' # Path of the test dataset
-  force_dataset_creation: true # Force the creation of the dataset
+  force_dataset_creation: false # Force the creation of the dataset
   path_save_data: '/home/armand/42/multilayer_perceptron' # Path to save the dataset
 
   shuffle: true # Shuffling the data
@@ -21,32 +21,32 @@ preprocessing:
     'symmetry_worst', 'fractal_dimension_worst']
 
 model:
-  intput_len: 30
+  input_len: 30
   model_path: 'save_model/model.json'
-  epochs: 5000
-  batch_size: 16
+  epochs: 1000
+  batch_size: 256
   learning_rate: 0.001
   nb_output: 2
   
   callbacks:
-    enable_early_stop: True
-    early_stop: 0.0000001
+    enable_early_stop: False
+    early_stop: 0.01
+    scheduler: 0.5
   
     enable_save_best_model: True
     best_model_path: 'save_model/best_model.json'
 
-
-  fc1: 64
-  fc2: 32
-  fc3: 32
-
-  dropout_rate: 0.4
-
-  # fc1: 64
-  # fc2: 256
-  # fc3: 128
-  # fc4: 128
-  # fc5: 64
+  layers:
+    - name: "relu"
+      output: 20
+    - name: "batchnorm"
+      output: 20
+    - name: "dropout"
+      output: 0.3
+    - name: "relu"
+      output: 10
+  
+  optimizer: 'rmsprop'
 
 predict:
   data_path: 'correction/data_test.csv' # Path of the dataset

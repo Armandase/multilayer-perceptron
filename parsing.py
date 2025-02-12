@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import random
 
 import logging
 import os
@@ -35,6 +34,11 @@ def normalize_data(dataset):
     dataset = (dataset - min_list) / (max_list - min_list)
     return dataset
 
+def normalize_data_mean_std(dataset):
+    mean_list = np.mean(dataset, axis=0)
+    std_list = np.std(dataset, axis=0)
+    dataset = (dataset - mean_list) / std_list
+    return dataset
 
 def get_batches(data_x, data_y, batch_size):
     if len(data_x) != len(data_y):
@@ -73,7 +77,8 @@ def load_dataset(data_path, preprocessing_config, verbose=True):
     if verbose:
         logging.info(f"Data loaded from {data_path}")
 
-    data_x = normalize_data(data_x)
+    # data_x = normalize_data(data_x)
+    data_x = normalize_data_mean_std(data_x)
     return data_x, data_y
 
 def create_datasets(data_path, preprocessing_config, verbose=True):
@@ -109,16 +114,11 @@ def preprocessing(preprocessing_config={}, verbose=True):
         create_datasets(data_path, preprocessing_config, verbose)
         data_train_path = os.path.join(path_save_data, 'data_train.csv')
         data_test_path = os.path.join(path_save_data, 'data_test.csv')
-    elif force_creation == False and data_path is not None and os.path.exists(data_path) is True:
+    elif data_train_path is None or not os.path.exists(data_train_path) \
+        or data_test_path is None or not os.path.exists(data_test_path):
         create_datasets(data_path, preprocessing_config, verbose)
         data_train_path = os.path.join(path_save_data, 'data_train.csv')
         data_test_path = os.path.join(path_save_data, 'data_test.csv')
-    elif data_train_path is not None and os.path.exists(data_train_path) is False \
-        or data_test_path is not None and os.path.exists(data_test_path) is False:
-        create_datasets(data_path, preprocessing_config, verbose)
-        data_train_path = os.path.join(path_save_data, 'data_train.csv')
-        data_test_path = os.path.join(path_save_data, 'data_test.csv')
-
     train_x, train_y = load_dataset(data_train_path, preprocessing_config, verbose)
     test_x, test_y = load_dataset(data_test_path, preprocessing_config, verbose)
 

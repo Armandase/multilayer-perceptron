@@ -3,6 +3,7 @@ import random
 from parsing import *
 from abc import ABC, abstractmethod
 from AdamOptim import AdamOptim
+from RMSprop import RMSprop
 
 def initialize_weights(input_len, output_len, method="he_uniform"):
     if method == "random_default":
@@ -18,9 +19,18 @@ def initialize_weights(input_len, output_len, method="he_uniform"):
     else:
         raise ValueError("Invalid method for initializing weights")
     
+def optimizers(name):
+    if name == "adam":
+        return AdamOptim
+    elif name == "rmsprop":
+        return RMSprop
+    else:
+        raise ValueError("Invalid optimizer")
 
 class Layer(ABC):
-    def __init__(self, input_len=0, output_len=0, learning_rate=0.01, weights=None, bias=None, dropout_rate=0.3):
+    def __init__(self, input_len=0, output_len=0,
+                 learning_rate=0.01, weights=None, bias=None,
+                 dropout_rate=0.3, optimizer=None):
         if weights is not None:
             self.weights = weights
         if bias is not None:
@@ -35,10 +45,17 @@ class Layer(ABC):
         self.bias_grad = None
         self.name = ""
         self.set_name()
-        self.optimizer = AdamOptim(eta=learning_rate)
+        if optimizer is not None:
+            self.optimizer = optimizers(optimizer)(eta=learning_rate)
+        else:
+            self.optimizer = None
         if self.name == "dropout":
+            if dropout_rate > 1 or dropout_rate < 0:
+                raise Exception("Dropout rate should be between 0 and 1.")
             self.dropout_rate = dropout_rate
 
+    def __str__(self):
+        return self.name + " Layer: input " + str(self.weights.shape[0]) + " output " + str(self.weights.shape[1])
     
     @abstractmethod
     def set_name(self):
@@ -66,9 +83,10 @@ class Layer(ABC):
         return output
     
     def upate_weights(self, epoch):
-        # if self.weights_grad is not None:
-        #     self.weights -= self.learning_rate * self.weights_grad
-        # if self.bias_grad is not None:
-        #     self.bias -= self.learning_rate * self.bias_grad
-        if self.weights_grad is not None and self.bias_grad is not None:
+        if self.weights_grad is None or self.bias_grad is None:
+            return
+        if self.optimizer is None:
+            self.weights -= self.learning_rate * self.weights_grad
+            self.bias -= self.learning_rate * self.bias_grad
+        else:
             self.weights, self.bias = self.optimizer.update(epoch, self.weights, self.bias, self.weights_grad, self.bias_grad)
