@@ -39,5 +39,7 @@ def meanSquareError(y_train, y_pred):
 def derivate_mean_square_error(y_train, y_pred):
     n = y_train.shape[0]
     diff = y_train - y_pred
-    print(diff.shape)
     return -2 * diff / n
+
+def derivate_bce(y_true, y_pred):
+    return y_pred - y_true

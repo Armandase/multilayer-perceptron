@@ -3,7 +3,7 @@ preprocessing:
   data_train_path: 'correction/data_training.csv' # Path of the train dataset
   data_test_path: 'correction/data_test.csv' # Path of the test dataset
   force_dataset_creation: false # Force the creation of the dataset
-  path_save_data: '/home/armand/42/multilayer_perceptron' # Path to save the dataset
+  path_save_data: '/home/armand/42/multilayer_perceptron/datasets' # Path to save the dataset
   # path_save_data: '/nfs/homes/adamiens/42/spe/multilayer-perceptron/datasets/' # Path to save the dataset
 
   shuffle: true # Shuffling the data
@@ -24,14 +24,14 @@ preprocessing:
 model:
   input_len: 30
   model_path: 'save_model/model.json'
-  epochs: 500
-  batch_size: 16
-  learning_rate: 0.05
+  epochs: 900
+  batch_size: 32
+  learning_rate: 0.001
   nb_output: 2
   
   callbacks:
     enable_early_stop: False
-    early_stop: 0.01
+    early_stop: 0.000001
     scheduler: 0.5
   
     enable_save_best_model: True
@@ -39,28 +39,25 @@ model:
 
   layers:
     - name: "sigmoid"
-      output: 64
-    # - name: 'dropout'
-      # output: 0.25
+      output: 16
+    # - name: l1_normaliZation
+      # output: 16
+    # - name: dropout
+      # output: 0.5
     - name: "sigmoid"
       output: 8
-    # - name: 'dropout'
-      # output: 0.1
-    # - name: "sigmoid"
-      # output: 64
-    # - name: "sigmoid"
-    #   output: 32
-    # # - name: dropout
-    #   # output: 0.4
-    # - name: "sigmoid"
-    #   output: 8
+    # - name: dropout
+      # output: 0.2
 
-  optimizer: 'rsmprop' 
-  # optimizer: 'adam' 
+
+  loss: 'bce'
+  # optimizer: 'rmsprop' 
+  optimizer: 'adam' 
   # optimizer:  
 
 predict:
   data_path: 'correction/data_test.csv' # Path of the dataset
+  # model_path: 'save_model/model.json'
   model_path: 'save_model/best_model.json'
   seed: -1
 

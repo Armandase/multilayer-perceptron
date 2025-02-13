@@ -6,7 +6,7 @@ import random
 import os
 import yaml
 
-from parsing import one_hot
+from parsing import one_hot, normalize_data_mean_std
 from Network import Network
 from layers.Sigmoid import Sigmoid
 from layers.Softmax import Softmax
@@ -25,6 +25,11 @@ def predict(data_x, data_y, model_path, seed):
             np.random.seed(seed)
         model = json.loads(infile.read())
 
+        mean = model['mean']
+        std = model['std']
+
+        data_x
+        data_x, _ ,_ = normalize_data_mean_std(data_x, mean, std)
         net = Network()
 
         for layer in model['network']:
@@ -75,7 +80,7 @@ def main(config_path: str):
         predict_config = config['predict']
 
 
-    data_x, data_y = load_dataset(predict_config['data_path'], config['preprocessing'], verbose)
+    data_x, data_y = load_dataset(predict_config['data_path'], config['preprocessing'], verbose, remove_outliers=False)
     
     predict(data_x, data_y, predict_config['model_path'], predict_config['seed'])
 
@@ -83,7 +88,7 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
     argparser.add_argument('--config', '-c', type=str, default='config.yaml')
     args = argparser.parse_args()
-    # try:
-    main(args.config)
-    # except Exception as e:
-        # print('Error:', e)
+    try:
+        main(args.config)
+    except Exception as e:
+        print('Error:', e)

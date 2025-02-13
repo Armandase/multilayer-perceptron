@@ -21,13 +21,19 @@ def update_historic(historic, epoch, accu, val_accu, loss_entropy, val_loss_entr
     historic["val_loss_entropy"].append(val_loss_entropy)
     historic["loss_mse"].append(loss_mse)
     historic["val_loss_mse"].append(val_loss_mse)
+    
 
 class Network:
-    def __init__(self, callbacks=None):
+    def __init__(self, mean=None, std=None, callbacks=None, deriv_loss=None):
         self.layers = []
         self.callbacks = None
+        self.derivative_loss = None
+        self.mean = mean
+        self.std = std
         if callbacks:
             self.callbacks = callbacks
+        if deriv_loss:
+            self.derivative_loss = deriv_loss
 
     def __str__(self): 
         str_layers = "Neural Network: \n"
@@ -77,6 +83,7 @@ class Network:
         best_accuracy = 0
         for epoch in range(epochs):
             table = init_table(epoch, epochs)
+            train_x, train_y = shuffle_data(train_x, train_y)
             batches_x, batches_y = get_batches(train_x, train_y, batch_size)
             prev_val_loss_entropy = np.inf            
 
@@ -86,9 +93,7 @@ class Network:
             avg_subject_entropy = 0
             nb_batches = len(batches_x)
             for x, y in zip(batches_x, batches_y):
-                y_one_hot = np.zeros((y.size, y.max() + 1))
-                y_one_hot[np.arange(y.size), y] = 1
-
+                y_one_hot = one_hot(y)
                 output = self.feedforward(x, True)
                 
                 avg_loss_entropy += binary_cross_entropy(np.array(y, copy=True), np.array(output, copy=True))
@@ -96,11 +101,8 @@ class Network:
                 avg_accu += accuracy(np.array(y, copy=True), np.array(output, copy=True))
                 avg_subject_entropy += subject_binary_cross_entropy(np.array(y_one_hot, copy=True), np.array(output, copy=True))
 
-                # grad = derivative_binary_cross_entropy(np.array(y_one_hot, copy=True), np.array(output, copy=True))
-                # grad = derivative_subject_binary_cross_entropy(np.array(y_one_hot, copy=True), np.array(output, copy=True))
-                # grad = derivate_mean_square_error(np.array(y_one_hot, copy=True), np.array(output, copy=True))
-                grad = output - y_one_hot
-                self.backpropagation(grad, epoch)
+                error = self.derivative_loss(np.array(y_one_hot, copy=True), np.array(output, copy=True))
+                self.backpropagation(error, epoch)
                 
             loss_entropy = avg_loss_entropy / nb_batches
             loss_subject_entropy = avg_subject_entropy / nb_batches
@@ -132,12 +134,18 @@ class Network:
                 break
             prev_val_loss_entropy = val_loss_entropy
 
-        print(f"Best subject entropy with data_test: {best_subject_entropy}")
-        print(f"Best accuracy with data_test: {best_accuracy}")
+        print(f"Best subject entropy with data_test: {best_subject_entropy:4f}")
+        print(f"Best accuracy with data_test: {best_accuracy:4f}")
         return historic 
 
     def save_weights(self, path):
-        data = {'network': []}
+        if self.mean is None or self.std is None:
+            raise Exception("Mean and std must be set before saving the model")
+        data = {
+            'mean': self.mean.tolist(),
+            'std': self.std.tolist(),
+            'network': []
+        }
 
         for layer in self.layers:
             layer_data = {

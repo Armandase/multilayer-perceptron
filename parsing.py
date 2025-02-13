@@ -28,17 +28,21 @@ def split_data(data, train_prop, test_prop):
 
     return train, test
 
-def normalize_data(dataset):
-    min_list = np.min(dataset, axis=0)
-    max_list = np.max(dataset, axis=0)
+def normalize_data(dataset, min_list=None, max_list=None):
+    if min_list is None:
+        min_list = np.min(dataset, axis=0)
+    if max_list is None:
+        max_list = np.max(dataset, axis=0)
     dataset = (dataset - min_list) / (max_list - min_list)
-    return dataset
+    return dataset, min_list, max_list
 
-def normalize_data_mean_std(dataset):
-    mean_list = np.mean(dataset, axis=0)
-    std_list = np.std(dataset, axis=0)
+def normalize_data_mean_std(dataset, mean_list=None, std_list=None):
+    if mean_list is None:
+        mean_list = np.mean(dataset, axis=0)
+    if std_list is None:
+        std_list = np.std(dataset, axis=0)
     dataset = (dataset - mean_list) / std_list
-    return dataset
+    return dataset, mean_list, std_list
 
 def get_batches(data_x, data_y, batch_size):
     if len(data_x) != len(data_y):
@@ -56,7 +60,22 @@ def get_batches(data_x, data_y, batch_size):
 
     return batches_x, batches_y
 
-def load_dataset(data_path, preprocessing_config, verbose=True):
+def shuffle_data(data_x, data_y):
+    idx = np.random.permutation(len(data_x))
+    return data_x[idx], data_y[idx]
+
+def remove_outliers_from_data(data_x, data_y):
+    for i in range(data_x.shape[1]):
+        high = np.quantile(data_x[:, i], 0.99)
+        low = np.quantile(data_x[:, i] , 0.01)
+        
+        idx = np.where((data_x[:, i] > low) & (data_x[:, i] < high))
+        data_x = data_x[idx]
+        data_y = data_y[idx]
+    
+    return data_x, data_y
+
+def load_dataset(data_path, preprocessing_config, verbose=True, remove_outliers=False):
     header = preprocessing_config['header']
     seed = preprocessing_config['seed']
 
@@ -77,16 +96,9 @@ def load_dataset(data_path, preprocessing_config, verbose=True):
     if verbose:
         logging.info(f"Data loaded from {data_path}")
 
-    # pop outlyers based on quantiles per feature
-    for i in range(data_x.shape[1]):
-        high = np.quantile(data_x[:, i], 0.99)
-        low = np.quantile(data_x[:, i] , 0.01)
-        
-        idx = np.where((data_x[:, i] > low) & (data_x[:, i] < high))
-        data_x = data_x[idx]
-        data_y = data_y[idx]
+    if remove_outliers is True:
+        data_x, data_y = remove_outliers_from_data(data_x, data_y)
 
-    data_x = normalize_data_mean_std(data_x)
     return data_x, data_y
 
 def create_datasets(data_path, preprocessing_config, verbose=True):
@@ -122,12 +134,16 @@ def preprocessing(preprocessing_config={}, verbose=True):
         create_datasets(data_path, preprocessing_config, verbose)
         data_train_path = os.path.join(path_save_data, 'data_train.csv')
         data_test_path = os.path.join(path_save_data, 'data_test.csv')
+        print("Force dataset creation")
     elif data_train_path is None or not os.path.exists(data_train_path) \
         or data_test_path is None or not os.path.exists(data_test_path):
         create_datasets(data_path, preprocessing_config, verbose)
         data_train_path = os.path.join(path_save_data, 'data_train.csv')
         data_test_path = os.path.join(path_save_data, 'data_test.csv')
-    train_x, train_y = load_dataset(data_train_path, preprocessing_config, verbose)
-    test_x, test_y = load_dataset(data_test_path, preprocessing_config, verbose)
+        print("Data not found. Creating datasets")
+    train_x, train_y = load_dataset(data_train_path, preprocessing_config, verbose, remove_outliers=False)
+    test_x, test_y = load_dataset(data_test_path, preprocessing_config, verbose, remove_outliers=False)
 
-    return train_x, train_y, test_x, test_y
+    train_x, mean, std = normalize_data_mean_std(train_x)
+    test_x, _, _ = normalize_data_mean_std(test_x, mean, std)
+    return train_x, train_y, test_x, test_y, mean, std

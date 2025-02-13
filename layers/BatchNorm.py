@@ -34,25 +34,18 @@ class BatchNorm(Layer):
             self.momentum = 0.9
 
         if train:
-            mu = np.mean(input, axis=0)
+            mean = np.mean(input, axis=0)
             var = np.var(input, axis=0)
-            self.running_mean = self.momentum * self.running_mean + (1 - self.momentum) * mu
+            self.x_hat = (input - mean) / np.sqrt(var + self.eps)
+            self.N = input.shape[0]
+            self.mean = mean
+            self.var = var
+            self.sqrtvar = np.sqrt(var + self.eps)
+            self.running_mean = self.momentum * self.running_mean + (1 - self.momentum) * mean
             self.running_var = self.momentum * self.running_var + (1 - self.momentum) * var
         else:
-            mu = self.running_mean
-            var = self.running_var
-
-        sqrtvar = np.sqrt(var + self.eps)
-        x_hat = (input - mu) / sqrtvar
-        output = self.gamma * x_hat + self.beta
-
-        if train:
-            self.x_hat = x_hat
-            self.mu = mu
-            self.var = var
-            self.N = input.shape[0]
-            self.sqrtvar = sqrtvar
-
+            self.x_hat = (input - self.running_mean) / np.sqrt(self.running_var + self.eps)
+        output = self.gamma * self.x_hat + self.beta
         return output
 
     def activation_function(self, Z):

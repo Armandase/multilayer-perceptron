@@ -16,8 +16,8 @@ class Softmax(Layer):
         return y_pred
     
     def backpropagation(self, error):
-        # error = error * self.derivative_activation_function(self.output)
-        error = error / (self.input.shape[0])
+        error = error * self.derivative_activation_function(self.output)
+        # error = error / (self.input.shape[0])
         
         self.weights_grad = np.dot(self.input.T, error)
         self.bias_grad = np.sum(error, axis=0)

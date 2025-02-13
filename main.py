@@ -6,8 +6,9 @@ import logging
 import os
 
 from parsing import preprocessing
-from Network import Network
+from math_func import derivative_binary_cross_entropy, derivative_subject_binary_cross_entropy, derivate_mean_square_error, derivate_bce
 from plotting import plot_curve
+from Network import Network
 from layers.Dropout import Dropout
 from Callback import Callback
 from layers.Sigmoid import Sigmoid
@@ -45,11 +46,25 @@ def name_to_class(name):
     else:
         raise Exception("Invalid layer name")
 
-def create_model_from_config(config_model):
+def deriv_loss_selection(name):
+    if name == "binary_cross_entropy":
+        return derivative_binary_cross_entropy
+    elif name == "subject_binary_cross_entropy":
+        return derivative_subject_binary_cross_entropy
+    elif name == "mean_square_error":
+        return derivate_mean_square_error
+    elif name == "bce":
+        return derivate_bce
+    else:
+        raise Exception("Wrong loss name")
+
+def create_model_from_config(config_model, mean, std):
     cfg_callbacks = config_model['callbacks']
+
     callbacks = get_callback_from_config(cfg_callbacks)
 
-    model = Network(callbacks)
+    loss_func = config_model['loss']
+    model = Network(mean, std, callbacks, deriv_loss=deriv_loss_selection(loss_func))
 
     nb_feature = config_model['input_len']
     lr = config_model['learning_rate']
@@ -62,40 +77,13 @@ def create_model_from_config(config_model):
         name = layer['name']
         output = layer['output']
         if name == 'dropout':
-            layer = name_to_class(name)(above_output, above_output, learning_rate=lr, dropout_rate=output)
+            layer = name_to_class(name)(above_output, above_output, learning_rate=lr, dropout_rate=output, optimizer=optimizer)
             output = above_output
         else:
-            layer = name_to_class(name)(above_output, output, learning_rate=lr)
+            layer = name_to_class(name)(above_output, output, learning_rate=lr, optimizer=optimizer)
         above_output = output
         model.addLayers(layer)
-    model.addLayers(Softmax(output, 2, learning_rate=lr))
-    return model
-
-def create_model_tiny(config_model):
-    callbacks = get_callback_from_config(config_model['callbacks'])
-
-    model = Network(callbacks)
-
-    nb_feature = config_model['input_len']
-    fc1_output = 64
-    fc2_output = 32
-    fc3_output = 32
-    dropout_rate = config_model['dropout_rate']
-    lr = config_model['learning_rate']
-
-    if dropout_rate > 1 or dropout_rate < 0:
-        raise Exception("Dropout rate should be between 0 and 1.")
-
-    model.addLayers(Sigmoid(nb_feature, fc1_output, learning_rate=lr))
-    # model.addLayers(BatchNorm(fc1_output, fc1_output, learning_rate=lr))
-    if dropout_rate > 0:
-        model.addLayers(Dropout(fc1_output, dropout_rate=dropout_rate))
-    model.addLayers(Sigmoid(fc1_output, fc2_output, learning_rate=lr))
-    # model.addLayers(BatchNorm(fc2_output, fc2_output, learning_rate=lr))
-    if dropout_rate > 0:
-        model.addLayers(Dropout(fc2_output, dropout_rate=dropout_rate))
-    model.addLayers(Sigmoid(fc2_output, fc3_output, learning_rate=lr))
-    model.addLayers(Softmax(fc3_output, 2, learning_rate=lr))
+    model.addLayers(Softmax(output, 2, learning_rate=lr, optimizer=optimizer))
     return model
 
 def main(config_path: str):
@@ -110,15 +98,10 @@ def main(config_path: str):
 
         verbose = config['verbose']
         preprocessing_config = config['preprocessing']
-        train_x, train_y, test_x, test_y = preprocessing(preprocessing_config, verbose)
+        train_x, train_y, test_x, test_y, mean, std = preprocessing(preprocessing_config, verbose)
 
-    config_model = config['model']
-    # model = create_model_tiny(config_model)
-    # print("Tiny model:", model)
-    model = create_model_from_config(config_model)
-    # print("From config:", model)
-    # print("Start training")
-    # exit()
+        config_model = config['model']
+        model = create_model_from_config(config_model, mean, std)
     batch_size = config_model['batch_size']
     epochs = config_model['epochs']
     learning_rate = config_model['learning_rate']
@@ -134,8 +117,8 @@ if __name__ == '__main__':
     argparser = argparse.ArgumentParser()
     argparser.add_argument('--config', '-c', type=str, default='config.yaml')
     args = argparser.parse_args()
-    # try:
-    main(args.config)
-    # except Exception as e:
-        # print('Error:', e)
+    try:
+        main(args.config)
+    except Exception as e:
+        print('Error:', e)
 

@@ -24,8 +24,9 @@ def optimizers(name):
         return AdamOptim
     elif name == "rmsprop":
         return RMSprop
-    else:
-        raise ValueError("Invalid optimizer")
+    elif name is None or name == "":
+        return None
+    raise ValueError("Invalid optimizer")
 
 class Layer(ABC):
     def __init__(self, input_len=0, output_len=0,
