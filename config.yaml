@@ -41,7 +41,7 @@ model:
     - name: "sigmoid"
       output: 64
     # - name: 'dropout'
-      # output: 0.1
+      # output: 0.25
     - name: "sigmoid"
       output: 8
     # - name: 'dropout'

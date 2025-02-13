@@ -77,7 +77,15 @@ def load_dataset(data_path, preprocessing_config, verbose=True):
     if verbose:
         logging.info(f"Data loaded from {data_path}")
 
-    # data_x = normalize_data(data_x)
+    # pop outlyers based on quantiles per feature
+    for i in range(data_x.shape[1]):
+        high = np.quantile(data_x[:, i], 0.99)
+        low = np.quantile(data_x[:, i] , 0.01)
+        
+        idx = np.where((data_x[:, i] > low) & (data_x[:, i] < high))
+        data_x = data_x[idx]
+        data_y = data_y[idx]
+
     data_x = normalize_data_mean_std(data_x)
     return data_x, data_y
 
