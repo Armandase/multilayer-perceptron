@@ -1,8 +1,10 @@
 __pycache__/
 correction/
-datasets/
+# datasets/
 save_model/
 data.csv
 scores
 todo
 *.csv
+.venv/
+venv/
