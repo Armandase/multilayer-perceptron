@@ -6,6 +6,7 @@ class Sigmoid(Layer):
         self.name = 'sigmoid'
 
     def backpropagation(self, above_delta):
+        # above_delta /= self.input.shape[0]
         above_delta *= self.derivative_activation_function(self.output)
 
         self.weights_grad = np.dot(self.input.T, above_delta)

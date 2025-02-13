@@ -97,12 +97,9 @@ class Network:
                 avg_subject_entropy += subject_binary_cross_entropy(np.array(y_one_hot, copy=True), np.array(output, copy=True))
 
                 # grad = derivative_binary_cross_entropy(np.array(y_one_hot, copy=True), np.array(output, copy=True))
-                grad = derivative_subject_binary_cross_entropy(np.array(y_one_hot, copy=True), np.array(output, copy=True))
-                # print(grad)
+                # grad = derivative_subject_binary_cross_entropy(np.array(y_one_hot, copy=True), np.array(output, copy=True))
                 # grad = derivate_mean_square_error(np.array(y_one_hot, copy=True), np.array(output, copy=True))
-                # grad = output - y_one_hot
-                # print(grad)
-                # exit()
+                grad = output - y_one_hot
                 self.backpropagation(grad, epoch)
                 
             loss_entropy = avg_loss_entropy / nb_batches

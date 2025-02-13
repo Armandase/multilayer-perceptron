@@ -16,7 +16,7 @@ class Dropout(Layer):
         return above_delta
 
     def feedforward(self, input, train):
-        if train:
+        if train is True:
             input = input * (1 - self.dropout_rate)
             self.mask = np.random.binomial(1, 1 - self.dropout_rate, size=input.shape) / (1 - self.dropout_rate)
             self.output = input * self.mask

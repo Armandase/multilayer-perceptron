@@ -8,3 +8,4 @@ todo
 *.csv
 .venv/
 venv/
+test/
