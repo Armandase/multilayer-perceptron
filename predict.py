@@ -3,60 +3,92 @@ import numpy as np
 import argparse
 import pandas as pd
 import random
+import os
+import yaml
 
-from math_func import *
+from parsing import one_hot, normalize_data_mean_std
 from Network import Network
-from Sigmoid import Sigmoid
-from Softmax import Softmax
-from parsing import init_data
-from constants import *
+from layers.Sigmoid import Sigmoid
+from layers.Softmax import Softmax
+from layers.Dropout import Dropout
+from layers.Relu import Relu
+from layers.Tanh import Tanh
+from layers.BatchNorm import BatchNorm
+from layers.L1Norm import L1Normalization
+from parsing import load_dataset
+from math_func import accuracy, binary_cross_entropy, subject_binary_cross_entropy, meanSquareError
 
-def predict(data_x, data_y):
-    with open(WEIGHT_PATH, 'r', newline='') as infile:
-        random.seed(SEED)
-        np.random.seed(SEED)
+def predict(data_x, data_y, model_path, seed):
+    with open(model_path, 'r', newline='') as infile:
+        if seed != -1:
+            random.seed(seed)
+            np.random.seed(seed)
         model = json.loads(infile.read())
 
-        # epoch = model['epoch']
-        # batch_size = model['batch_size']
-        # iteration = epoch * (int(data_x.shape[0] / batch_size) + 1)
-        learning_rate = model['learning_rate']
-        net = Network(learning_rate)
+        mean = model['mean']
+        std = model['std']
+
+        data_x
+        data_x, _ ,_ = normalize_data_mean_std(data_x, mean, std)
+        net = Network()
 
         for layer in model['network']:
             weights = np.array(layer['weights'])
             bias = np.array(layer['bias'])
             if layer['name'] == "sigmoid":
-                net.addLayers(Sigmoid(0,0,learning_rate, weights, bias))
+                net.addLayers(Sigmoid(weights=weights, bias=bias))
+            elif layer['name'] == "relu":
+                net.addLayers(Relu(weights=weights, bias=bias))
             elif layer['name'] == "softmax":
-                net.addLayers(Softmax(0,0,learning_rate, weights, bias))
+                net.addLayers(Softmax(weights=weights, bias=bias))
+            elif layer['name'] == "dropout":
+                net.addLayers(Dropout(weights=weights, bias=bias))
+            elif layer['name'] == "batchnorm":
+                net.addLayers(BatchNorm(weights=weights, bias=bias))
+            elif layer['name'] == "l1_normalization":
+                net.addLayers(L1Normalization(weights=weights, bias=bias))
+            elif layer['name'] == "tanh":
+                net.addLayers(Tanh(weights=weights, bias=bias))
             else:
                 raise Exception("Wrong layer name")
 
-        x_global, y_global = init_data(data_x, data_y, data_x.shape[0])[:2]
-        y_pred = net.feedforward(x_global, False)
+        y_pred = net.feedforward(data_x, train=False)
 
-        precision = accuracy(y_global, y_pred)
-        print("Accuracy: ", precision, " as ", (1 - precision) * 100, "%")
+        precision = accuracy(data_y, y_pred)
+        print("Accuracy: ", precision, " also ", (precision * 100), "%")
         
-        loss = binaryCrossEntropy(y_pred, y_global)
+        loss = binary_cross_entropy(data_y, y_pred)
         print("Loss global: ", loss)
 
-def main(data_path: str):
-    try:
-        data = pd.read_csv(data_path, header=None)
-        data_y = data.drop(0, axis=1)
-        data_x = data_y.drop(1, axis=1)
-        data_y = data_y[1].replace('M', 1).replace('B', 0)
-        
-        predict(data_x, data_y)
-    except Exception as e:
-        print("An error occurred:", str(e))
-        exit(1)
+        loss_subject = subject_binary_cross_entropy(one_hot(data_y), y_pred)
+        print("Loss subject: ", loss_subject)
+
+        loss_mse = meanSquareError(y_pred, data_y)
+        print("Loss MSE: ", loss_mse)
+
+def main(config_path: str):
+    if config_path is None or os.path.exists(config_path) is False:
+        print(f"Invalid or missing config file: {config_path}")
+        return
+    
+    verbose = False
+    with open(config_path, 'r') as config_file:
+        config = yaml.safe_load(config_file)
+        print(f"Config loaded from {config_path}")
+
+        verbose = config['verbose']
+        predict_config = config['predict']
+
+
+    data_x, data_y = load_dataset(predict_config['data_path'], config['preprocessing'], verbose, remove_outliers=False)
+    
+    predict(data_x, data_y, predict_config['model_path'], predict_config['seed'])
 
 if __name__ == "__main__":
-    params = argparse.ArgumentParser()
-    params.add_argument("--data_path")
-    args = params.parse_args()
-
-    main(args.data_path)
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('--config', '-c', type=str, default='config.yaml')
+    args = argparser.parse_args()
+    try:
+        main(args.config)
+    except Exception as e:
+        print('Error:', e)
